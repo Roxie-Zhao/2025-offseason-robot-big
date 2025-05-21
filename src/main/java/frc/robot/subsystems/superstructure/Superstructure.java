@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.endeffectorarm.EndEffectorArmSubsystem;
 import frc.robot.subsystems.intake.IntakeSubsystem;
+import lombok.Builder;
 import lombok.Getter;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -17,9 +18,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class Superstructure extends SubsystemBase {
-    private final ElevatorSubsystem elevator;
-    private final EndEffectorArmSubsystem endEffectorArm;
-    private final IntakeSubsystem intake;
+
 
     private final Graph<SuperstructureState, EdgeCommand> graph = new DefaultDirectedGraph<>(EdgeCommand.class);
 
@@ -28,35 +27,22 @@ public class Superstructure extends SubsystemBase {
     @Getter private SuperstructureState goal = SuperstructureState.START;
     private EdgeCommand edgeCommand;
 
-    public Superstructure(
-            ElevatorSubsystem elevator,
-            EndEffectorArmSubsystem endEffectorArm,
-            IntakeSubsystem intake) {
-        this.elevator = elevator;
-        this.endEffectorArm = endEffectorArm;
-        this.intake = intake;
+    public Superstructure() {
+
 
         // Add states as vertices
         for (var state : SuperstructureState.values()) {
             graph.addVertex(state);
         }
 
-        // Add edge from start to idle
-        graph.addEdge(
-            SuperstructureState.START,
-            SuperstructureState.STOW,
-            EdgeCommand.builder()
-                .command(Commands.none())   
-                .build());
+        // Declear all edges here
+        addEdge(SuperstructureState.START, SuperstructureState.STOW);
     }
 
     @Override
     public void periodic() {
         // Run periodic
-        elevator.periodic();
-        endEffectorArm.periodic();
-        intake.periodic();
-
+   
         if (edgeCommand == null || !edgeCommand.getCommand().isScheduled()) {
             // Update edge to new state
             if (next != null) {
@@ -188,13 +174,57 @@ public class Superstructure extends SubsystemBase {
     }
 
     private boolean isEdgeAllowed(EdgeCommand edge, SuperstructureState goal) {
-        return true; // Add any edge restrictions here
+        return !edge.isRestricted() || goal == graph.getEdgeTarget(edge); 
+    }
+
+    /**
+     * Adds an edge between two states in the superstructure state machine.
+     * @param from The source state
+     * @param to The target state
+     * @param reverse If true, also adds a reverse edge from 'to' to 'from'
+     * @param restricted If true, this edge can only be used when transitioning directly to its target state(z.b from L4 to L4shoot))
+     */
+    private void addEdge(
+        SuperstructureState from,
+        SuperstructureState to,
+        boolean reverse,
+        boolean restricted) {
+      graph.addEdge(
+          from,
+          to,
+          EdgeCommand.builder()
+              .command(getEdgeCommand(from, to))
+              .restricted(restricted)
+              .build());
+      if (reverse) {
+        graph.addEdge(
+            to,
+            from,
+            EdgeCommand.builder()
+                .command(getEdgeCommand(to, from))
+                .restricted(restricted)
+                .build());
+      }
+    }
+
+    private void addEdge(SuperstructureState from, SuperstructureState to, boolean restricted) {
+        addEdge(from, to, false, restricted);
+    }
+
+    private void addEdge(SuperstructureState from, SuperstructureState to) {
+        addEdge(from, to, false);
+    }
+
+    //declare all edge commands here
+    private Command getEdgeCommand(SuperstructureState from, SuperstructureState to) {
+        return Commands.none();
     }
 
     /** All edge commands should finish and exit properly. */
-    @lombok.Builder(toBuilder = true)
-    @lombok.Getter
+    @Builder(toBuilder = true)
+    @Getter
     public static class EdgeCommand extends DefaultEdge {
-        private final Command command;
+      private final Command command;
+      @Builder.Default private final boolean restricted = false;
     }
 } 
