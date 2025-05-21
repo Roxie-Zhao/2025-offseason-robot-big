@@ -11,21 +11,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class SuperstructureStateData {
     @Builder.Default
-    private final SuperstructurePose pose = new SuperstructurePose(() -> 0.0, () -> Rotation2d.kZero);
+    private final SuperstructurePose pose = new SuperstructurePose(() -> 0.0, () -> Rotation2d.kZero, () -> Rotation2d.kZero);
 
     @Builder.Default private final DoubleSupplier intakeVolts = () -> 0.0;
     @Builder.Default private final DoubleSupplier endEffectorVolts = () -> 0.0;
-    @Builder.Default private final DoubleSupplier elevatorVolts = () -> 0.0;
-    @Builder.Default private final Height height = Height.BOTTOM;
-
-    /** What height is the elevator at? */
-    @RequiredArgsConstructor
-    @Getter
-    public enum Height {
-        BOTTOM(0),
-        FIRST_STAGE(1),
-        SECOND_STAGE(2);
-
-        private final double position;
-    }
 } 
