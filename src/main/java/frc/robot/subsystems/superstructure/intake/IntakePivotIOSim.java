@@ -1,4 +1,4 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.superstructure.intake;
 
 import edu.wpi.first.math.*;
 import edu.wpi.first.math.controller.PIDController;

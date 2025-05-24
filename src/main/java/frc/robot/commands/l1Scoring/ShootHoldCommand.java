@@ -3,7 +3,7 @@ package frc.robot.commands.l1Scoring;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotContainer;
-import frc.robot.subsystems.intake.IntakeSubsystem;
+import frc.robot.subsystems.superstructure.intake.IntakeSubsystem;
 
 import java.util.function.BooleanSupplier;
 

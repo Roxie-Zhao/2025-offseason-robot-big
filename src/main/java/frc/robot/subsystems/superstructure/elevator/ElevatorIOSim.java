@@ -1,4 +1,4 @@
-package frc.robot.subsystems.elevator;
+package frc.robot.subsystems.superstructure.elevator;
 
 import edu.wpi.first.math.*;
 import edu.wpi.first.math.controller.ProfiledPIDController;

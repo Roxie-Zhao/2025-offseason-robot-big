@@ -1,7 +1,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.intake.IntakeSubsystem;
+import frc.robot.subsystems.superstructure.intake.IntakeSubsystem;
 
 public class GroundOuttakeCommand extends Command {
     private final IntakeSubsystem intakeSubsystem;

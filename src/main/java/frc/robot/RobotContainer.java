@@ -6,6 +6,9 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
@@ -43,22 +46,25 @@ import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.climber.ClimberSubsystem;
-import frc.robot.subsystems.elevator.ElevatorIO;
-import frc.robot.subsystems.elevator.ElevatorIOReal;
-import frc.robot.subsystems.elevator.ElevatorIOSim;
-import frc.robot.subsystems.elevator.ElevatorSubsystem;
-import frc.robot.subsystems.endeffectorarm.*;
 import frc.robot.subsystems.indicator.IndicatorIO;
 import frc.robot.subsystems.indicator.IndicatorIOARGB;
 import frc.robot.subsystems.indicator.IndicatorIOSim;
 import frc.robot.subsystems.indicator.IndicatorSubsystem;
-import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.limelight.LimelightIOReal;
 import frc.robot.subsystems.limelight.LimelightIOReplay;
 import frc.robot.subsystems.limelight.LimelightSubsystem;
 import frc.robot.subsystems.superstructure.Superstructure;
 import frc.robot.subsystems.superstructure.SuperstructureState;
+import frc.robot.subsystems.superstructure.elevator.ElevatorIO;
+import frc.robot.subsystems.superstructure.elevator.ElevatorIOReal;
+import frc.robot.subsystems.superstructure.elevator.ElevatorIOSim;
+import frc.robot.subsystems.superstructure.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.superstructure.endeffectorarm.*;
+import frc.robot.subsystems.superstructure.intake.*;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.roller.RollerIO;
+import frc.robot.subsystems.roller.RollerIOReal;
+import frc.robot.subsystems.roller.RollerIOSim;
 import lombok.Getter;
 import org.frcteam6941.looper.UpdateManager;
 import org.littletonrobotics.AllianceFlipUtil;
@@ -117,13 +123,27 @@ public class RobotContainer {
                 elevatorSubsystem = new ElevatorSubsystem(new ElevatorIOReal());
                 intakeSubsystem = new IntakeSubsystem(
                         new IntakePivotIOReal(),
-                        new IntakeRollerIOReal(),
+                        new RollerIOReal(
+                            RobotConstants.IntakeConstants.INTAKE_MOTOR_ID,
+                            RobotConstants.CANIVORE_CAN_BUS_NAME,
+                            RobotConstants.IntakeConstants.STATOR_CURRENT_LIMIT_AMPS,
+                            RobotConstants.IntakeConstants.SUPPLY_CURRENT_LIMIT_AMPS,
+                            RobotConstants.IntakeConstants.IS_INVERT,
+                            RobotConstants.IntakeConstants.IS_BRAKE
+                        ),
                         new BeambreakIOReal(RobotConstants.BeamBreakConstants.INTAKE_BEAMBREAK_ID)
                 );
                 climberSubsystem = new ClimberSubsystem(new ClimberIOReal());
                 endEffectorArmSubsystem = new EndEffectorArmSubsystem(
                         new EndEffectorArmPivotIOReal(),
-                        new EndEffectorArmRollerIOReal(),
+                        new RollerIOReal(
+                            RobotConstants.EndEffectorArmConstants.END_EFFECTOR_ARM_ROLLER_MOTOR_ID,
+                            RobotConstants.CANIVORE_CAN_BUS_NAME,
+                            RobotConstants.EndEffectorArmConstants.STATOR_CURRENT_LIMIT_AMPS,
+                            RobotConstants.EndEffectorArmConstants.SUPPLY_CURRENT_LIMIT_AMPS,
+                            RobotConstants.EndEffectorArmConstants.IS_INVERT,
+                            RobotConstants.EndEffectorArmConstants.IS_BRAKE
+                        ),
                         new BeambreakIOReal(RobotConstants.BeamBreakConstants.ENDEFFECTORARM_CORAL_BEAMBREAK_ID),
                         new BeambreakIOReal(RobotConstants.BeamBreakConstants.ENDEFFECTORARM_ALGAE_BEAMBREAK_ID)
                 );
@@ -137,7 +157,10 @@ public class RobotContainer {
                 elevatorSubsystem = new ElevatorSubsystem(new ElevatorIOSim());
                 intakeSubsystem = new IntakeSubsystem(
                         new IntakePivotIOSim(),
-                        new IntakeRollerIOSim(),
+                        new RollerIOSim(1, RobotConstants.IntakeConstants.ROLLER_RATIO, 
+                            new SimpleMotorFeedforward(0.0, 0.24),
+                            new ProfiledPIDController(0.5, 0.0, 0.0,
+                                new TrapezoidProfile.Constraints(15, 1))),
                         new BeambreakIOSim(RobotConstants.BeamBreakConstants.INTAKE_BEAMBREAK_ID)
                 );
                 climberSubsystem = new ClimberSubsystem(new ClimberIOSim());
@@ -147,7 +170,9 @@ public class RobotContainer {
                 }});
                 endEffectorArmSubsystem = new EndEffectorArmSubsystem(
                         new EndEffectorArmPivotIOSim(),
-                        new EndEffectorArmRollerIOSim(),
+                        new RollerIOSim(1, 1.0, new SimpleMotorFeedforward(0.0, 0.24),
+                                new ProfiledPIDController(0.5, 0.0, 0.0,
+                                        new TrapezoidProfile.Constraints(15, 1))),
                         new BeambreakIOSim(RobotConstants.BeamBreakConstants.ENDEFFECTORARM_CORAL_BEAMBREAK_ID),
                         new BeambreakIOSim(RobotConstants.BeamBreakConstants.ENDEFFECTORARM_ALGAE_BEAMBREAK_ID)
                 );
@@ -169,7 +194,7 @@ public class RobotContainer {
             endEffectorArmSubsystem = new EndEffectorArmSubsystem(
                     new EndEffectorArmPivotIO() {
                     },
-                    new EndEffectorArmRollerIO() {
+                    new RollerIO() {
                     },
                     new BeambreakIO() {
                     },
@@ -185,7 +210,7 @@ public class RobotContainer {
             intakeSubsystem = new IntakeSubsystem(
                     new IntakePivotIO() {
                     },
-                    new IntakeRollerIO() {
+                    new RollerIO() {
                     },
                     new BeambreakIO() {
                     }
@@ -224,7 +249,21 @@ public class RobotContainer {
         autoChooser.addOption("None", "None");
     }
 
-    //Configure all commands for driver
+
+    
+/**
+ * Superstructure Default Command Behavior
+ * 
+ * The superstructure subsystem uses a default command that continuously monitors and updates its state.
+ * This command runs automatically in the background under these conditions:
+ * - When the robot transitions from disabled to enabled state
+ * - When no other command is actively running on the subsystem
+ * - After a previously running command completes
+ * 
+ * Note: When a goal command is executed (e.g., via button bindings), it remains active even after
+ * reaching the target state. This prevents the default command from taking over, which is intentional
+ * to maintain the desired state until a new command is issued.
+ */
     private void configureDriverBindings() {
         swerve.setDefaultCommand(Commands.runOnce(() -> swerve.drive(
                 new Translation2d(
@@ -236,12 +275,6 @@ public class RobotContainer {
                         0 : -driverController.getRightX() * RobotConstants.SwerveConstants.maxAngularRate.magnitude(),
                 true,
                 false), swerve));
-
-//        driverController.povRight().whileTrue(
-//                new InstantCommand(() -> swerve.setKinematicsLimit(DRIVETRAIN_LIMITED)).finallyDo(
-//                        () -> swerve.setKinematicsLimit(DRIVETRAIN_UNCAPPED)
-//                )
-//        );
 
         driverController.start().onTrue(
                 Commands.runOnce(() -> {
@@ -312,10 +345,10 @@ public class RobotContainer {
     }
 
     public void configureTesterBindings() {
-        testerController.a().onTrue(superstructure.runGoal(SuperstructureState.STOW));
-        testerController.b().onTrue(superstructure.runGoal(SuperstructureState.L3));
-        testerController.x().onTrue(superstructure.runGoal(SuperstructureState.L3_EJECT));
-        testerController.y().onTrue(superstructure.runGoal(SuperstructureState.CORAL_GROUND_INTAKE));
+        testerController.a().onTrue(superstructure.runGoal(() -> SuperstructureState.STOW));
+        testerController.b().onTrue(superstructure.runGoal(() -> SuperstructureState.L3));
+        testerController.x().toggleOnTrue(superstructure.runGoal(() -> SuperstructureState.L3_EJECT));
+        testerController.y().onTrue(superstructure.runGoal(() -> SuperstructureState.CORAL_GROUND_INTAKE));
         testerController.leftBumper().onTrue(Commands.runOnce(() -> destinationSupplier.updateElevatorSetpoint(DestinationSupplier.elevatorSetpoint.P1)));
         testerController.rightBumper().onTrue(Commands.runOnce(() -> destinationSupplier.updateElevatorSetpoint(DestinationSupplier.elevatorSetpoint.P2)));
         testerController.povUp().whileTrue(new PutAlgaeProcessorCommand(testerController, endEffectorArmSubsystem, elevatorSubsystem, intakeSubsystem, indicatorSubsystem));

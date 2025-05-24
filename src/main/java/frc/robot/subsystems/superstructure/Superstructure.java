@@ -4,9 +4,9 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.elevator.ElevatorSubsystem;
-import frc.robot.subsystems.endeffectorarm.EndEffectorArmSubsystem;
-import frc.robot.subsystems.intake.IntakeSubsystem;
+import frc.robot.subsystems.superstructure.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.superstructure.endeffectorarm.EndEffectorArmSubsystem;
+import frc.robot.subsystems.superstructure.intake.IntakeSubsystem;
 import lombok.Builder;
 import lombok.Getter;
 import org.jgrapht.Graph;
@@ -28,6 +28,19 @@ public class Superstructure extends SubsystemBase {
     @Getter private SuperstructureState goal = SuperstructureState.START;
     private EdgeCommand edgeCommand;
 
+    /**
+     * Constructor for the Superstructure subsystem.
+     * 
+     * Important Implementation Requirements:
+     * 1. All state transitions (edges) must be declared in the constructor using addEdge()
+     * 2. All edge commands must be implemented in getEdgeCommand()
+     * 3. All commands must properly exit and finish - they should not run indefinitely
+     *    This is crucial for the state machine to progress to the next state
+     * 
+     * @see #addEdge(SuperstructureState, SuperstructureState, boolean, boolean)
+     * @see #getEdgeCommand(SuperstructureState, SuperstructureState)
+     * @see EdgeCommand
+     */
     public Superstructure() {
 
 
@@ -42,6 +55,7 @@ public class Superstructure extends SubsystemBase {
         addEdge(SuperstructureState.CORAL_GROUND_INTAKE, SuperstructureState.L3, true, false);
         addEdge(SuperstructureState.STOW, SuperstructureState.L3, true, false);
         addEdge(SuperstructureState.L3, SuperstructureState.L3_EJECT, true,false);
+        setDefaultCommand(runGoal(() -> SuperstructureState.STOW));
     }
 
     @Override
@@ -188,6 +202,8 @@ public class Superstructure extends SubsystemBase {
      * @param to The target state
      * @param reverse If true, also adds a reverse edge from 'to' to 'from'
      * @param restricted If true, this edge can only be used when transitioning directly to its target state(z.b from L4 to L4shoot))
+     * @see #isEdgeAllowed(EdgeCommand, SuperstructureState) Implementation of restricted edge behavior
+     * @see #bfs(SuperstructureState, SuperstructureState) Path finding that respects restricted edges
      */
     private void addEdge(
         SuperstructureState from,
@@ -235,15 +251,10 @@ public class Superstructure extends SubsystemBase {
     private Command getEdgeCommand(SuperstructureState from, SuperstructureState to) {
         if (from == SuperstructureState.CORAL_GROUND_INTAKE && to == SuperstructureState.L3) {
             return Commands.sequence(
-                Commands.waitSeconds(1),
-                Commands.runOnce(() -> {
-                    System.out.println("Coral Ground Intake to L3");
-                })
+                Commands.waitSeconds(1)
             );
         }
-        return Commands.runOnce(() -> {
-            System.out.println(from + " to " + to);
-        });
+        return Commands.none();
     }
 
     /** All edge commands should finish and exit properly. */

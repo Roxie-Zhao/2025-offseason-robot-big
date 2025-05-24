@@ -5,10 +5,10 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotConstants;
 import frc.robot.drivers.GamepieceTracker;
-import frc.robot.subsystems.elevator.ElevatorSubsystem;
-import frc.robot.subsystems.endeffectorarm.EndEffectorArmSubsystem;
 import frc.robot.subsystems.indicator.IndicatorSubsystem;
-import frc.robot.subsystems.intake.IntakeSubsystem;
+import frc.robot.subsystems.superstructure.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.superstructure.endeffectorarm.EndEffectorArmSubsystem;
+import frc.robot.subsystems.superstructure.intake.IntakeSubsystem;
 
 public class PutAlgaeProcessorCommand extends ParallelCommandGroup {
     public PutAlgaeProcessorCommand(CommandXboxController driverController, EndEffectorArmSubsystem endeffectorArmSubsystem,

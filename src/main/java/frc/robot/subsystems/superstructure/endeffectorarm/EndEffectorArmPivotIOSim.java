@@ -1,4 +1,4 @@
-package frc.robot.subsystems.endeffectorarm;
+package frc.robot.subsystems.superstructure.endeffectorarm;
 
 import edu.wpi.first.math.*;
 import edu.wpi.first.math.controller.PIDController;

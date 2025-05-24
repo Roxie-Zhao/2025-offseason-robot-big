@@ -10,7 +10,7 @@ import frc.robot.FieldConstants;
 import frc.robot.RobotConstants;
 import frc.robot.display.Display;
 import frc.robot.drivers.DestinationSupplier;
-import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.superstructure.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.swerve.Swerve;
 import org.littletonrobotics.AllianceFlipUtil;
 import org.littletonrobotics.junction.Logger;

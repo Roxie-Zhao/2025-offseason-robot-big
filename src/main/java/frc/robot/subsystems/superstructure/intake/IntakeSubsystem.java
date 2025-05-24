@@ -1,4 +1,4 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.superstructure.intake;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
@@ -8,6 +8,8 @@ import frc.robot.RobotConstants;
 import frc.robot.drivers.GamepieceTracker;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
+import frc.robot.subsystems.intake.IntakePivotIOInputsAutoLogged;
+import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.subsystems.superstructure.SuperstructureVisualizer;
@@ -32,7 +34,7 @@ public class IntakeSubsystem extends RollerSubsystem {
     private static double intakeTime = INTAKE_TIME.get();
     private static double outtakeTime = OUTTAKE_TIME.get();
     private final IntakePivotIO intakePivotIO;
-    private final IntakeRollerIO intakeRollerIO;
+    private final RollerIO intakeRollerIO;
     private final IntakePivotIOInputsAutoLogged intakePivotIOInputs = new IntakePivotIOInputsAutoLogged();
     private final RollerIOInputsAutoLogged intakeRollerIOInputs = new RollerIOInputsAutoLogged();
     private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
@@ -52,7 +54,7 @@ public class IntakeSubsystem extends RollerSubsystem {
 
     public IntakeSubsystem(
             IntakePivotIO intakePivotIO,
-            IntakeRollerIO intakeRollerIO,
+            RollerIO intakeRollerIO,
             BeambreakIO BBIO
     ) {
         super(intakeRollerIO, NAME);

@@ -1,25 +1,42 @@
-package frc.robot.subsystems.endeffectorarm;
+package frc.robot.subsystems.superstructure.endeffectorarm;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotConstants;
 import frc.robot.RobotContainer;
 import frc.robot.drivers.DestinationSupplier;
 import frc.robot.drivers.GamepieceTracker;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
+import frc.robot.subsystems.endeffectorarm.EndEffectorArmPivotIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIOInputsAutoLogged;
-import frc.robot.subsystems.roller.RollerSubsystem;
+import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.superstructure.SuperstructureVisualizer;
 import frc.robot.utils.TimeDelayedBoolean;
 import lombok.Getter;
 import lombok.Setter;
 import org.littletonrobotics.junction.Logger;
 
+import static frc.robot.RobotConstants.CANIVORE_CAN_BUS_NAME;
 import static frc.robot.RobotConstants.EndEffectorArmConstants.*;
+import static frc.robot.RobotConstants.EndEffectorArmConstants.EndEffectorArmRollerGainsClass.*;
 
-public class EndEffectorArmSubsystem extends RollerSubsystem {
+public class EndEffectorArmSubsystem extends SubsystemBase {
     public static final String NAME = "EndEffectorArm";
     // Static variables to hold the current values from TunableNumbers
     private static double homeAngle = HOME_ANGLE.get();
@@ -40,59 +57,61 @@ public class EndEffectorArmSubsystem extends RollerSubsystem {
 
     private static double coralHoldVoltage = CORAL_HOLD_VOLTAGE.get();
     private static double algaeHoldVoltage = ALGAE_HOLD_VOLTAGE.get();
-    // Add these constants near the other static variables
     private static double coralShootVoltage = CORAL_SHOOT_VOLTAGE.get();
     private static double algaeNetShootVoltage = ALGAE_NET_SHOOT_VOLTAGE.get();
+
     private final Timer algaeShootTimer = new Timer();
+    private final Timer isCoralShootingStartedTimer = new Timer();
+    private final Timer simGamepieceTimer = new Timer();
+
     // IO devices and their inputs
     private final EndEffectorArmPivotIO armPivotIO;
-    private final EndEffectorArmRollerIO armRollerIO;
     private final EndEffectorArmPivotIOInputsAutoLogged armPivotIOInputs = new EndEffectorArmPivotIOInputsAutoLogged();
     private final RollerIOInputsAutoLogged armRollerIOInputs = new RollerIOInputsAutoLogged();
+
     // Beambreak sensors for coral and algae detection
     private final BeambreakIO coralBeambreakIO;
     private final BeambreakIO algaeBeambreakIO;
     private final BeambreakIOInputsAutoLogged coralBeambreakInputs = new BeambreakIOInputsAutoLogged();
     private final BeambreakIOInputsAutoLogged algaeBeambreakInputs = new BeambreakIOInputsAutoLogged();
-    private final Timer simGamepieceTimer = new Timer();
+
+    // Roller motor control
+    private final RollerIO rollerIO;
+
     private boolean algaeShootTimerStarted = false;
-    // State tracking
     @Setter
     private WantedState wantedState = WantedState.HOLD;
     @Getter
     private SystemState systemState = SystemState.HOLDING;
 
-    private Timer isCoralShootingStartedTimer = new Timer();
-
-
-    /**
-     * Creates a new EndEffectorArmSubsystem
-     *
-     * @param armPivotIO       The IO interface for the arm pivot
-     * @param armRollerIO      The IO interface for the roller
-     * @param coralBeambreakIO The beambreak sensor for coral detection
-     * @param algaeBeambreakIO The beambreak sensor for algae detection
-     */
     public EndEffectorArmSubsystem(
             EndEffectorArmPivotIO armPivotIO,
-            EndEffectorArmRollerIO armRollerIO,
+            RollerIO rollerIO,
             BeambreakIO coralBeambreakIO,
             BeambreakIO algaeBeambreakIO) {
-        super(armRollerIO, NAME);
         this.armPivotIO = armPivotIO;
-        this.armRollerIO = armRollerIO;
+        this.rollerIO = rollerIO;
         this.coralBeambreakIO = coralBeambreakIO;
         this.algaeBeambreakIO = algaeBeambreakIO;
+
+        // Apply initial PID gains
+        rollerIO.updateConfigs(
+            END_EFFECTOR_ARM_ROLLER_KP.get(),
+            END_EFFECTOR_ARM_ROLLER_KI.get(),
+            END_EFFECTOR_ARM_ROLLER_KD.get(),
+            END_EFFECTOR_ARM_ROLLER_KA.get(),
+            END_EFFECTOR_ARM_ROLLER_KV.get(),
+            END_EFFECTOR_ARM_ROLLER_KS.get()
+        );
     }
 
     @Override
     public void periodic() {
-        super.periodic();
-
         // Update inputs from hardware
         armPivotIO.updateInputs(armPivotIOInputs);
         coralBeambreakIO.updateInputs(coralBeambreakInputs);
         algaeBeambreakIO.updateInputs(algaeBeambreakInputs);
+        rollerIO.updateInputs(armRollerIOInputs);
 
         if (RobotBase.isReal()) {
             // If the robot is real, Update DestinationSupplier with current coral and algae states
@@ -147,10 +166,10 @@ public class EndEffectorArmSubsystem extends RollerSubsystem {
         Logger.processInputs(NAME + "/Pivot", armPivotIOInputs);
         Logger.processInputs(NAME + "/Coral Beambreak", coralBeambreakInputs);
         Logger.processInputs(NAME + "/Algae Beambreak", algaeBeambreakInputs);
+        Logger.processInputs(NAME + "/Roller", armRollerIOInputs);
 
         // Log the system state
         Logger.recordOutput("EndEffectorArm/SystemState", systemState.toString());
-
         Logger.recordOutput("Flags/eeIsDanger", RobotContainer.endeffectorIsDanger);
         Logger.recordOutput("Flags/eeIsDangerOverride", RobotContainer.overrideEndEffectorDanger);
 
@@ -164,12 +183,12 @@ public class EndEffectorArmSubsystem extends RollerSubsystem {
         // Handle actions based on current system state
         switch (systemState) {
             case CORAL_INTAKING:
-                armRollerIO.setVoltage(coralIntakeVoltage);
+                rollerIO.setVoltage(coralIntakeVoltage);
                 armPivotIO.setPivotAngle(coralIntakeAngle);
                 break;
 
             case CORAL_OUTTAKING:
-                armRollerIO.setVoltage(coralOuttakeVoltage);
+                rollerIO.setVoltage(coralOuttakeVoltage);
                 armPivotIO.setPivotAngle(coralOuttakeAngle);
                 break;
 
@@ -185,7 +204,7 @@ public class EndEffectorArmSubsystem extends RollerSubsystem {
                 }
                 break;
             case ALGAE_INTAKING:
-                armRollerIO.setVoltage(algaeIntakeVoltage);
+                rollerIO.setVoltage(algaeIntakeVoltage);
                 armPivotIO.setPivotAngle(algaeIntakeAngle);
                 break;
 
@@ -194,7 +213,7 @@ public class EndEffectorArmSubsystem extends RollerSubsystem {
                 break;
 
             case ALGAE_NET_SHOOTING:
-                armRollerIO.setVoltage(algaeNetShootVoltage);
+                rollerIO.setVoltage(algaeNetShootVoltage);
                 break;
 
             case ALGAE_PROCESSOR_PRESHOOTING:
@@ -202,30 +221,29 @@ public class EndEffectorArmSubsystem extends RollerSubsystem {
                 break;
 
             case ALGAE_PROCESSOR_SHOOTING:
-                armRollerIO.setVoltage(algaeProcessorShootVoltage);
+                rollerIO.setVoltage(algaeProcessorShootVoltage);
                 break;
 
             case HOLDING:
-                //TODO: cant allow both algae and coral to be held at the same time
                 if (hasAlgae()) {
-                    armRollerIO.setVoltage(algaeHoldVoltage);
+                    rollerIO.setVoltage(algaeHoldVoltage);
                     armPivotIO.setPivotAngle(coralIntakeAngle);
                 } else if (hasCoral()) {
                     armPivotIO.setPivotAngle(homeAngle);
-                    armRollerIO.setVoltage(coralHoldVoltage);
+                    rollerIO.setVoltage(coralHoldVoltage);
                 }
                 break;
 
             case NEUTRAL:
-                armRollerIO.stop();
+                rollerIO.stop();
                 armPivotIO.setPivotAngle(coralIntakeAngle);
                 break;
 
             case CORAL_SHOOTING:
                 if (DestinationSupplier.getInstance().getCurrentElevSetpointCoral() == DestinationSupplier.elevatorSetpoint.L1) {
-                    armRollerIO.setVoltage(coralShootVoltageL1);
+                    rollerIO.setVoltage(coralShootVoltageL1);
                 } else {
-                    armRollerIO.setVoltage(coralShootVoltage);
+                    rollerIO.setVoltage(coralShootVoltage);
                 }
                 break;
         }
@@ -252,6 +270,16 @@ public class EndEffectorArmSubsystem extends RollerSubsystem {
             coralShootVoltage = CORAL_SHOOT_VOLTAGE.get();
             algaeNetShootVoltage = ALGAE_NET_SHOOT_VOLTAGE.get();
             algaeProcessorShootVoltage = ALGAE_PROCESSOR_SHOOT_VOLTAGE.get();
+
+            // Update roller PID gains if tuning is enabled
+            rollerIO.updateConfigs(
+                END_EFFECTOR_ARM_ROLLER_KP.get(),
+                END_EFFECTOR_ARM_ROLLER_KI.get(),
+                END_EFFECTOR_ARM_ROLLER_KD.get(),
+                END_EFFECTOR_ARM_ROLLER_KA.get(),
+                END_EFFECTOR_ARM_ROLLER_KV.get(),
+                END_EFFECTOR_ARM_ROLLER_KS.get()
+            );
         }
     }
 

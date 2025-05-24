@@ -1,4 +1,4 @@
-package frc.robot.subsystems.endeffectorarm;
+package frc.robot.subsystems.superstructure.endeffectorarm;
 
 import org.littletonrobotics.junction.AutoLog;
 

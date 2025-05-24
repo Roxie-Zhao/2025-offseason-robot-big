@@ -2,8 +2,8 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.endeffectorarm.EndEffectorArmSubsystem;
 import frc.robot.subsystems.indicator.IndicatorSubsystem;
+import frc.robot.subsystems.superstructure.endeffectorarm.EndEffectorArmSubsystem;
 
 public class ShootCommand extends Command {
     private final EndEffectorArmSubsystem endEffectorArmSubsystem;

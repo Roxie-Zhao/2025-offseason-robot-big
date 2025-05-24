@@ -1,4 +1,4 @@
-package frc.robot.subsystems.endeffectorarm;
+package frc.robot.subsystems.superstructure.endeffectorarm;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
