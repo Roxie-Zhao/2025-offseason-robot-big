@@ -7,12 +7,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.json.simple.parser.ParseException;
 
+import static frc.robot.subsystems.superstructure.DestinationSupplier.elevatorSetpoint.L4;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import static frc.robot.drivers.DestinationSupplier.elevatorSetpoint.L4;
 
 public class AutoFile {
     private final AutoActions autoActions;

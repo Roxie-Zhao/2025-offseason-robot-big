@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.RobotConstants;
 import frc.robot.RobotConstants.SwerveConstants;
-import frc.robot.drivers.DestinationSupplier;
+import frc.robot.subsystems.superstructure.DestinationSupplier;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;

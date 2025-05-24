@@ -23,10 +23,21 @@ public record SuperstructurePose(DoubleSupplier elevatorHeight, Supplier<Rotatio
     @Getter
     @RequiredArgsConstructor
     enum Preset {
-        STOW("stow",0.5, 45, 0),
-        START("start", 0.0, 0, 0),
+        CORAL_STOW("Coral Stow",0.5, 45, 0),
+        ALGAE_STOW("Algae Stow", 0.5, 45, 0),
+        START("Start", 0.0, 0, 0),
+        L1_INTAKE_SIDE("L1 Intake Side", 0.5, 0, 0),
+        L1_SHOOT_SIDE("L1 Shoot Side", 0.5, 0, 0),
+        L2("L2", 0.5, 0, 0),
         L3("L3",0.7,45,45),
-        CORAL_GROUND_INTAKE("Coral Ground Intake", 0.0, 0, 90);
+        L4("L4", 0.7, 45, 45),
+        NET_SCORE("Net Score", 0.5, 0, 0),
+        P1("P1", 0.5, 0, 0),
+        P2("P2", 0.5, 0, 0),
+        CORAL_GROUND_INTAKE("Coral Ground Intake", 0.0, 0, 90),
+        AVOID("Avoid", 0.5, 0, 0);
+
+
         
         private final SuperstructurePose pose;
 

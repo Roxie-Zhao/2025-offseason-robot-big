@@ -11,7 +11,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
-import frc.robot.drivers.GamepieceTracker;
+
 import frc.robot.subsystems.swerve.Swerve;
 
 public class SuperstructureVisualizer {

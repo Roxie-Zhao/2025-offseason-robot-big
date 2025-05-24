@@ -1,5 +1,6 @@
 package frc.robot.subsystems.superstructure;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -50,12 +51,59 @@ public class Superstructure extends SubsystemBase {
         }
 
         // Declear all edges here
-        addEdge(SuperstructureState.START, SuperstructureState.STOW);
-        addEdge(SuperstructureState.CORAL_GROUND_INTAKE, SuperstructureState.STOW, true, false);
-        addEdge(SuperstructureState.CORAL_GROUND_INTAKE, SuperstructureState.L3, true, false);
-        addEdge(SuperstructureState.STOW, SuperstructureState.L3, true, false);
-        addEdge(SuperstructureState.L3, SuperstructureState.L3_EJECT, true,false);
-        setDefaultCommand(runGoal(() -> SuperstructureState.STOW));
+
+
+
+        // Add edges between shoot and preshoot states
+        final Set<Pair<SuperstructureState, SuperstructureState>> shootStates =
+        Set.of(
+            Pair.of(SuperstructureState.L1_INTAKE_SIDE, SuperstructureState.L1_INTAKE_SIDE_EJECT),
+            Pair.of(SuperstructureState.L1_SHOOT_SIDE, SuperstructureState.L1_SHOOT_SIDE_EJECT),
+            Pair.of(SuperstructureState.L2, SuperstructureState.L2_EJECT),
+            Pair.of(SuperstructureState.L3, SuperstructureState.L3_EJECT),
+            Pair.of(SuperstructureState.L4, SuperstructureState.L4_EJECT),
+            Pair.of(SuperstructureState.NET_SCORE, SuperstructureState.NET_SCORE_EJECT));
+        for (var pair : shootStates) {
+            addEdge(pair.getFirst(), pair.getSecond(), true, false);
+        }
+        final Set<SuperstructureState> freeStatesBelowFlip =
+        Set.of(
+            SuperstructureState.CORAL_GROUND_INTAKE,
+            SuperstructureState.IDLE
+            );
+        final Set<SuperstructureState> freeStatesAboveFlip =
+        Set.of(
+            SuperstructureState.CORAL_STOW,
+            SuperstructureState.ALGAE_STOW,
+            SuperstructureState.L1_INTAKE_SIDE,
+            SuperstructureState.L3,
+            SuperstructureState.L4,
+            SuperstructureState.P1,
+            SuperstructureState.P2,
+            SuperstructureState.NET_SCORE
+            );
+        for (var from : freeStatesBelowFlip) {
+            for (var to : freeStatesBelowFlip) {
+                if (from != to) {
+                    addEdge(from, to, false);
+                }
+            }
+        }
+        for (var from : freeStatesAboveFlip) {
+            for (var to : freeStatesAboveFlip) {
+                if (from != to) {
+                    addEdge(from, to, false);
+                }
+            }
+        }
+        for (var from :freeStatesAboveFlip){
+            addEdge(from, SuperstructureState.AVOID, false);
+        }
+        for (var from : freeStatesBelowFlip) {
+            addEdge(from, SuperstructureState.AVOID, false);
+        }
+
+        setDefaultCommand(Commands.none());
     }
 
     @Override

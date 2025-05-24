@@ -1,9 +1,9 @@
 package frc.robot.commands.manualSequence;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.drivers.DestinationSupplier;
-import frc.robot.drivers.GamepieceTracker;
 import frc.robot.subsystems.indicator.IndicatorSubsystem;
+import frc.robot.subsystems.superstructure.DestinationSupplier;
+import frc.robot.subsystems.superstructure.GamepieceTracker;
 import frc.robot.subsystems.superstructure.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.superstructure.endeffectorarm.EndEffectorArmSubsystem;
 import frc.robot.subsystems.superstructure.intake.IntakeSubsystem;
