@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -42,6 +43,8 @@ import frc.robot.subsystems.superstructure.elevator.ElevatorIOSim;
 import frc.robot.subsystems.superstructure.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.superstructure.endeffectorarm.*;
 import frc.robot.subsystems.superstructure.intake.*;
+import frc.robot.subsystems.questnav.OculusIOReal;
+import frc.robot.subsystems.questnav.OculusSubsystem;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerIOReal;
@@ -50,6 +53,7 @@ import lombok.Getter;
 import org.frcteam6941.looper.UpdateManager;
 import org.littletonrobotics.AllianceFlipUtil;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import frc.robot.subsystems.questnav.OculusIO;
 
 import java.util.HashMap;
 
@@ -86,6 +90,7 @@ public class RobotContainer {
     private LimelightSubsystem limelightSubsystem;
     private EndEffectorArmSubsystem endEffectorArmSubsystem;
     private Superstructure superstructure;
+    private OculusSubsystem oculusSubsystem;
     private double lastResetTime = 0.0;
 
 
@@ -125,6 +130,7 @@ public class RobotContainer {
                     put(LIMELIGHT_LEFT, new LimelightIOReal(LIMELIGHT_LEFT));
                     put(LIMELIGHT_RIGHT, new LimelightIOReal(LIMELIGHT_RIGHT));
                 }});
+                oculusSubsystem = new OculusSubsystem(new OculusIOReal());
             } else {
                 // Simulation initialization
                 indicatorSubsystem = new IndicatorSubsystem(new IndicatorIOSim());
@@ -150,6 +156,7 @@ public class RobotContainer {
                         new BeambreakIOSim(RobotConstants.BeamBreakConstants.ENDEFFECTORARM_CORAL_BEAMBREAK_ID),
                         new BeambreakIOSim(RobotConstants.BeamBreakConstants.ENDEFFECTORARM_ALGAE_BEAMBREAK_ID)
                 );
+                oculusSubsystem = new OculusSubsystem(new OculusIOReal());
             }
         }
 
@@ -194,6 +201,10 @@ public class RobotContainer {
             elevatorSubsystem = new ElevatorSubsystem(new ElevatorIO() {
             });
         }
+        if (oculusSubsystem == null) {
+            oculusSubsystem = new OculusSubsystem(new OculusIO.Default());
+        }
+
 
         superstructure = new Superstructure(intakeSubsystem,endEffectorArmSubsystem,elevatorSubsystem);
 
@@ -267,46 +278,10 @@ public class RobotContainer {
     }
 
     public void configureTesterBindings() {
-        testerController
-            .a()
-            .toggleOnTrue(
-                superstructure
-                    .runZero()
-            );
-
-        testerController
-            .b()
-            .whileTrue(
-                superstructure
-                    .runGoal(() -> SuperstructureState.L4)
-                    .until(testerController.x())
-                    .andThen(
-                        superstructure
-                            .runGoal(() -> SuperstructureState.L4_EJECT)
-                            .until(() -> !superstructure.hasCoral())
-                    )
-            );
-
-        testerController
-            .button(4)
-            .whileTrue(
-                superstructure
-                    .runGoal(() -> SuperstructureState.P1)
-                    .until(superstructure::hasAlgae)
-            );
-        testerController
-            .button(5)
-            .whileTrue(
-                superstructure
-                    .runGoal(() -> SuperstructureState.NET_SCORE)
-                    .until(testerController.button(6))
-                    .andThen(
-                        superstructure
-                            .runGoal(() -> SuperstructureState.NET_SCORE_EJECT)
-                            .until(() -> !superstructure.hasAlgae())
-                    )
-            );
-        
+        testerController.a().onTrue(Commands.runOnce(() -> oculusSubsystem.resetPose(new Pose2d(0, 0, new Rotation2d(0)),true)).ignoringDisable(true));
+        testerController.b().onTrue(Commands.runOnce(() -> destinationSupplier.updateElevatorSetpoint(DestinationSupplier.elevatorSetpoint.L2)));
+        testerController.rightBumper().onTrue(Commands.runOnce(() -> destinationSupplier.updateElevatorSetpoint(DestinationSupplier.elevatorSetpoint.P2)));
+        // TODO: Implement PutAlgaeProcessorCommand or replace with appropriate command
     }
 
     public Command getAutonomousCommand() {
