@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.questnav.OculusConstants.PoseResetStrategy;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.utils.LoggedTracer;
 import frc.robot.subsystems.questnav.OculusIO;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -86,6 +87,7 @@ public class OculusSubsystem extends SubsystemBase {
 
     // Add to Kalman filter
     processPose();
+    LoggedTracer.record("Oculus");
   }
 
   /**
