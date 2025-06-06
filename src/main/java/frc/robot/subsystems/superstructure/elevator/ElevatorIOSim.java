@@ -19,6 +19,12 @@ import static frc.robot.RobotConstants.ElevatorConstants.*;
 public class ElevatorIOSim implements ElevatorIO {
     public static final double carriaeMass = Units.lbsToKilograms(7.0 + (3.25 / 2));
     private static final DCMotor elevatorTalonsim = DCMotor.getKrakenX60Foc(2).withReduction(ELEVATOR_GEAR_RATIO);
+    
+    // Calculate scale factor from motor parameters
+    private static final double SCALE_FACTOR = (elevatorTalonsim.KtNMPerAmp / ((ELEVATOR_SPOOL_DIAMETER / 2) * carriaeMass)) 
+                                             * (1.0 / elevatorTalonsim.rOhms)
+                                             * 0.5; // Damping factor to reduce response
+    
     public static final Matrix<N2, N2> A =
             MatBuilder.fill(
                     Nat.N2(),
@@ -40,8 +46,10 @@ public class ElevatorIOSim implements ElevatorIO {
                     ElevatorGainsClass.ELEVATOR_KP.get(),
                     ElevatorGainsClass.ELEVATOR_KI.get(),
                     ElevatorGainsClass.ELEVATOR_KD.get(),
-                    new Constraints(100, 300));
-    private final double feedforward = 5;
+                    new Constraints(
+                        heightToRad(5.0),  // max velocity of 5 m/s
+                        heightToRad(7.0)  // max acceleration of 10 m/s²
+                    ));
     private Measure<VoltageUnit> appliedVolts = Volts.zero();
     private double targetPositionMeters = 0.0;
     private Vector<N2> simState;
@@ -55,8 +63,16 @@ public class ElevatorIOSim implements ElevatorIO {
     @Override
     public void updateInputs(ElevatorIOInputs inputs) {
         for (int i = 0; i < RobotConstants.LOOPER_DT / (1.0 / 1000.0); i++) {
+            // Calculate acceleration using state space model
+            double acceleration = A.times(simState).get(1, 0) + 
+                                B.times(MatBuilder.fill(Nat.N1(), Nat.N1(), inputTorqueCurrent * SCALE_FACTOR)).get(1, 0) - 9.8;
+            
+            double feedforward = ElevatorGainsClass.ELEVATOR_KS.get() * Math.signum(simState.get(1)) +
+                               ElevatorGainsClass.ELEVATOR_KV.get() * simState.get(1) +
+                               ElevatorGainsClass.ELEVATOR_KA.get() * acceleration + // acceleration term
+                               ElevatorGainsClass.ELEVATOR_KG.get(); // gravity compensation
             setInputTorqueCurrent(
-                    controller.calculate(simState.get(0)) * 15 + feedforward);
+                    controller.calculate(simState.get(0)) * SCALE_FACTOR + feedforward);
             update(1.0 / 1000.0);
         }
 
@@ -80,7 +96,7 @@ public class ElevatorIOSim implements ElevatorIO {
                                                         0.0,
                                                         -9.8)),
                         simState,
-                        MatBuilder.fill(Nat.N1(), Nat.N1(), inputTorqueCurrent * 30),
+                        MatBuilder.fill(Nat.N1(), Nat.N1(), inputTorqueCurrent * SCALE_FACTOR),
                         dt);
         // Apply limits
         simState = VecBuilder.fill(updatedState.get(0, 0), updatedState.get(1, 0));
@@ -105,7 +121,7 @@ public class ElevatorIOSim implements ElevatorIO {
 
     @Override
     public void setElevatorVoltage(double volts) {
-
+        setInputTorqueCurrent(volts / 12.0 * elevatorTalonsim.stallCurrentAmps);
     }
 
     @Override
@@ -119,18 +135,16 @@ public class ElevatorIOSim implements ElevatorIO {
         controller.setGoal(heightToRad(meters));
     }
 
-
     @Override
     public double getElevatorVelocity() {
         return radToHeight(simState.get(1));
     }
 
     private double heightToRad(double heightMeters) {
-        return heightMeters / (ELEVATOR_SPOOL_DIAMETER / 2);
+        return (heightMeters / (Math.PI * ELEVATOR_SPOOL_DIAMETER)) * ELEVATOR_GEAR_RATIO;
     }
 
     private double radToHeight(double rad) {
-        return rad * (ELEVATOR_SPOOL_DIAMETER / 2);
+        return rad * (Math.PI * ELEVATOR_SPOOL_DIAMETER) / ELEVATOR_GEAR_RATIO;
     }
-
 }
