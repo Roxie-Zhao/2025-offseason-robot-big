@@ -81,6 +81,7 @@ public class ElevatorIOSim implements ElevatorIO {
         inputs.setpointMeters = targetPositionMeters;
         inputs.statorCurrentAmps = Math.copySign(inputTorqueCurrent, appliedVolts.magnitude());
         inputs.supplyCurrentAmps = Math.copySign(inputTorqueCurrent, appliedVolts.magnitude());
+        inputs.motorVoltage = appliedVolts.magnitude();
     }
 
     private void update(double dt) {

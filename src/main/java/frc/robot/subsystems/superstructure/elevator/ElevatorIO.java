@@ -26,6 +26,7 @@ public interface ElevatorIO {
         public double appliedVolts = 0.0;
         public double statorCurrentAmps = 0.0;
         public double supplyCurrentAmps = 0.0;
+        public double motorVoltage = 0.0;
         public double tempCelsius = 0.0;
     }
 

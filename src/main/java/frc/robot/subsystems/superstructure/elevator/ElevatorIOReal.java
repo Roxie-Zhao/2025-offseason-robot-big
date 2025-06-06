@@ -120,7 +120,7 @@ public class ElevatorIOReal implements ElevatorIO {
         inputs.statorCurrentAmps = statorLeft.getValueAsDouble();
         inputs.supplyCurrentAmps = supplyLeft.getValueAsDouble();
         inputs.tempCelsius = tempLeft.getValueAsDouble();
-
+        inputs.motorVoltage = leader.getMotorVoltage().getValueAsDouble();
         if (RobotConstants.TUNING) {
             slot0Configs.kA = ElevatorGainsClass.ELEVATOR_KA.get();
             slot0Configs.kS = ElevatorGainsClass.ELEVATOR_KS.get();
