@@ -14,6 +14,8 @@ import frc.robot.subsystems.swerve.Swerve;
 import lombok.Getter;
 import lombok.Setter;
 import org.littletonrobotics.AllianceFlipUtil;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.List;
@@ -27,10 +29,6 @@ public class DestinationSupplier { ;
     public boolean useSuperCycle = true;
     Swerve swerve;
     @Getter
-    private L1Mode l1Mode = L1Mode.ELEVATOR;
-    @Getter
-    private IntakeMode intakeMode = IntakeMode.NORMAL;
-    @Getter
     private controlMode currentControlMode = controlMode.AUTO;
     @Getter
     @Setter
@@ -38,12 +36,15 @@ public class DestinationSupplier { ;
     private boolean coralRight = false;
     private boolean useCoral = false;
     @Getter
-    private SuperstructureState currentElevSetpointCoral = L2;
-    @Getter
-    private SuperstructureState currentElevSetpointAlgae = P1;
-    @Getter
     private AlgaeScoringMode algaeScoringMode = AlgaeScoringMode.NET;
     @Getter
+    @AutoLogOutput(key = "DestinationSupplier/currentStateSetpointCoral")
+    private SuperstructureState currentStateSetpointCoral = L2;
+    @Getter
+    @AutoLogOutput(key = "DestinationSupplier/currentStateSetpointAlgae")
+    private SuperstructureState currentStateSetpointAlgae = P1;
+    @Getter
+    @AutoLogOutput(key = "DestinationSupplier/CurrentPiece")
     private GamePiece currentGamePiece = GamePiece.CORAL_SCORING;
 
     private DestinationSupplier() {
@@ -165,6 +166,83 @@ public class DestinationSupplier { ;
         Logger.recordOutput("EdgeCase/TargetChanged", minDistanceID == secondMinDistanceID);
     }
 
+
+    public void setStateSetPoint(SuperstructureState stateSetPoint) {
+        switch (stateSetPoint) {
+            case L1_INTAKE_SIDE, L2, L3, L4:
+                currentStateSetpointCoral = stateSetPoint;
+                break;
+            case P1, P2:
+                currentStateSetpointAlgae = stateSetPoint;
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + currentStateSetpointCoral);
+        }
+    }
+
+    // all pre state
+    public SuperstructureState getPreState() {
+        return switch (currentGamePiece) {
+            case ALGAE_INTAKING ->  getPreAlgaeState();
+            case CORAL_SCORING -> getPreCoralState();
+        };
+    }
+
+    private SuperstructureState getPreCoralState() {
+        return switch (currentStateSetpointCoral) {
+            case L1_INTAKE_SIDE -> L1_INTAKE_SIDE;
+            case L1_SHOOT_SIDE -> L1_SHOOT_SIDE;
+            case L2 -> L2;
+            case L3 -> L3;
+            case L4 -> L4;
+            default -> throw new IllegalStateException("Unexpected value: " + currentStateSetpointCoral);
+        };
+    }
+
+    private SuperstructureState getPreAlgaeState() {
+        return switch (currentStateSetpointAlgae) {
+            case P1 -> P1;
+            case P2 -> P2;
+            default -> throw new IllegalStateException("Unexpected value: " + currentStateSetpointAlgae);
+        };
+    }
+
+
+
+
+
+    // all scoring state
+    public SuperstructureState getShootState() {
+        return switch (currentGamePiece) {
+            case ALGAE_INTAKING -> getShootAlgaeState();
+            case CORAL_SCORING -> getShootCoralState();
+        };
+    }
+
+    private SuperstructureState getShootCoralState() {
+        return switch (currentStateSetpointCoral) {
+            case L1_SHOOT_SIDE -> L1_SHOOT_SIDE_EJECT;
+            case L1_INTAKE_SIDE -> L1_INTAKE_SIDE_EJECT;
+            case L2 -> L2_EJECT;
+            case L3 -> L3_EJECT;
+            case L4 -> L4_EJECT;
+            case NET_SCORE -> NET_SCORE_EJECT;
+            default -> throw new IllegalStateException("Unexpected value: " + currentStateSetpointAlgae);
+        };
+    }
+
+    private SuperstructureState getShootAlgaeState() {
+        return switch (algaeScoringMode) {
+            case NET -> NET_SCORE_EJECT;
+            case PROCESSOR -> throw new IllegalStateException("Unexpected value: " + currentStateSetpointAlgae);
+        };
+    }
+
+
+
+
+
+
     /**
      * Gets the nearest AprilTag pose to the robot's current position
      *
@@ -246,29 +324,6 @@ public class DestinationSupplier { ;
     }
 
     /**
-     * Updates the elevator setpoint for either coral or poke positions
-     *
-     * @param setpoint The desired elevator setpoint (L1-L4 for coral, P1-P2 for poke)
-     */
-    public void updateElevatorSetpoint(SuperstructureState setpoint) {
-        switch (setpoint) {
-            case L1_INTAKE_SIDE, L2, L3, L4:
-                currentElevSetpointCoral = setpoint;
-                Logger.recordOutput("DestinationSupplier/currentElevSetpointCoral", setpoint);
-                SmartDashboard.putString("DestinationSupplier/currentElevSetpointCoral", setpoint.toString());
-                break;
-            case P1, P2:
-                currentElevSetpointAlgae = setpoint;
-                Logger.recordOutput("DestinationSupplier/currentElevSetpointPoke", setpoint);
-                SmartDashboard.putString("DestinationSupplier/currentElevSetpointPoke", setpoint.toString());
-                break;
-            default:
-                System.out.println("Unknown elevator setpoint: " + setpoint);
-        }
-    }
-
-
-    /**
      * Updates which reef branch to target
      *
      * @param coralRight When true, targets the right reef relative to the AprilTag when facing it
@@ -280,12 +335,6 @@ public class DestinationSupplier { ;
         SmartDashboard.putString("DestinationSupplier/Pipe", coralRight ? "Right" : "Left");
     }
 
-    public void setAlgaeScoringMode(AlgaeScoringMode algaeScoringMode) {
-        this.algaeScoringMode = algaeScoringMode;
-        Logger.recordOutput("DestinationSupplier/algaeScoringMode", algaeScoringMode);
-        SmartDashboard.putString("DestinationSupplier/algaeScoringMode", algaeScoringMode.toString());
-    }
-
     /**
      * Gets the current branch setting
      *
@@ -295,46 +344,14 @@ public class DestinationSupplier { ;
         return coralRight;
     }
 
-    /**
-     * Sets the current control mode for the robot
-     *
-     * @param mode The desired control mode (MANUAL, SEMI, or AUTO)
-     */
-    public void setCurrentControlMode(controlMode mode) {
-        this.currentControlMode = mode;
-        Logger.recordOutput("DestinationSupplier/CurrentControlMode", mode);
-        SmartDashboard.putString("DestinationSupplier/CurrentControlMode", mode.name());
-    }
-
-    /**
-     * Sets the current L1 operation mode
-     *
-     * @param mode The desired L1 mode (ELEVATOR or INTAKE)
-     */
-    public void setCurrentL1Mode(L1Mode mode) {
-        this.l1Mode = mode;
-        Logger.recordOutput("DestinationSupplier/CurrentL1Mode", mode);
-        SmartDashboard.putString("DestinationSupplier/CurrentL1Mode", mode.name());
-    }
-
-    /**
-     * Sets the current intake operation mode
-     *
-     * @param mode The desired intake mode (TREMBLE or NORMAL)
-     */
-    public void setCurrentIntakeMode(IntakeMode mode) {
-        this.intakeMode = mode;
-        Logger.recordOutput("DestinationSupplier/CurrentIntakeMode", mode);
-        SmartDashboard.putString("DestinationSupplier/CurrentIntakeMode", mode.name());
-    }
 
     public void updatePokeSetpointByTag(int tagNumber) {
         switch (tagNumber) {
             case 6, 8, 10, 17, 19, 21:
-                updateElevatorSetpoint(SuperstructureState.P1);
+                setStateSetPoint(SuperstructureState.P1);
                 break;
             case 7, 9, 11, 18, 20, 22:
-                updateElevatorSetpoint(SuperstructureState.P2);
+                setStateSetPoint(SuperstructureState.P2);
                 break;
             default:
                 System.out.println("Tag number does not correspond to a valid elevator setpoint.");
@@ -361,34 +378,8 @@ public class DestinationSupplier { ;
         SmartDashboard.putBoolean("DestinationSupplier/UseSuperCycle", useSuperCycle);
     }
 
-    public SuperstructureState ejectStateTransition () {
-        return switch (currentElevSetpointAlgae) {
-            case L1_SHOOT_SIDE -> L1_SHOOT_SIDE_EJECT;
-            case L1_INTAKE_SIDE -> L1_INTAKE_SIDE_EJECT;
-            case L2 -> L2_EJECT;
-            case L3 -> L3_EJECT;
-            case L4 -> L4_EJECT;
-            case NET_SCORE -> NET_SCORE_EJECT;
-            default -> throw new IllegalStateException("Unexpected value: " + currentElevSetpointAlgae);
-        };
-    }
-
-    public enum elevatorSetpoint {
-        L1, L2, L3, L4, P1, P2
-    }
-
     public enum controlMode {
         MANUAL, SEMI, AUTO
-    }
-
-    public enum L1Mode {
-        ELEVATOR,
-        INTAKE
-    }
-
-    public enum IntakeMode {
-        TREMBLE,
-        NORMAL
     }
 
     public enum GamePiece {
