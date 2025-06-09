@@ -62,19 +62,17 @@ public class ReefAimCommand extends Command {
     public void initialize() {
         // Calculate destination
         robotPose = swerve.getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp());
-        tagPose = DestinationSupplier.getNearestTag(robotPose);
+        tagPose = AimGoalSupplier.getNearestTag(robotPose);
         // PID init
-//        xPID.reset(robotPose.getX(), swerve.getLocalizer().getMeasuredVelocity().getX());
-//        yPID.reset(robotPose.getY(), swerve.getLocalizer().getMeasuredVelocity().getY());
         xPID.reset(robotPose.getX(), swerve.getSwerveVelocity().vxMetersPerSecond);
         yPID.reset(robotPose.getY(), swerve.getSwerveVelocity().vyMetersPerSecond);
 
         // Choose target based on game piece
         if (DestinationSupplier.getInstance().getCurrentGamePiece() == DestinationSupplier.GamePiece.ALGAE_INTAKING) {
-            finalDestinationPose = DestinationSupplier.getFinalAlgaeTarget(tagPose);
+            finalDestinationPose = AimGoalSupplier.getFinalAlgaeTarget(tagPose);
         } else {
             rightReef = DestinationSupplier.getInstance().getCurrentBranch();
-            finalDestinationPose = DestinationSupplier.getFinalCoralTarget(tagPose, rightReef);
+            finalDestinationPose = AimGoalSupplier.getFinalCoralTarget(tagPose, rightReef);
         }
         indicatorSubsystem.setPattern(IndicatorIO.Patterns.AIMING);
     }
@@ -99,7 +97,7 @@ public class ReefAimCommand extends Command {
         }
 
         robotPose = swerve.getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp());
-        destinationPose = DestinationSupplier.getDriveTarget(robotPose, finalDestinationPose);
+        destinationPose = AimGoalSupplier.getDriveTarget(robotPose, finalDestinationPose);
 
         xPID.setGoal(destinationPose.getTranslation().getX());
         yPID.setGoal(destinationPose.getTranslation().getY());
