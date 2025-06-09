@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.aimSequences.SuperCycleCommand;
 import frc.robot.commands.climb.ClimbCommand;
 import frc.robot.commands.climb.IdleClimbCommand;
 import frc.robot.commands.climb.PreClimbCommand;
@@ -305,39 +306,31 @@ public class RobotContainer {
                 );
 
 
+
+//        driverController
+//                .b()
+//                .whileTrue(
+//                        superstructure
+//                                .runGoal(() -> SuperstructureState.L4)
+//                                .until(driverController.x())
+//                                .andThen(
+//                                        superstructure
+//                                                .runGoal(() -> SuperstructureState.L4_EJECT)
+//                                                .until(() -> !superstructure.hasCoral())
+//                                )
+//                );
+
         driverController
-                .a()
-                .toggleOnTrue(
-                        superstructure
-                                .runZero()
+                .button(1)
+                .whileTrue(
+                        new SuperCycleCommand(superstructure,
+                                indicatorSubsystem,
+                                driverController,
+                                () -> false)
                 );
 
         driverController
-                .b()
-                .whileTrue(
-                        superstructure
-                                .runGoal(() -> SuperstructureState.L4)
-                                .until(driverController.x())
-                                .andThen(
-                                        superstructure
-                                                .runGoal(() -> SuperstructureState.L4_EJECT)
-                                                .until(() -> !superstructure.hasCoral())
-                                )
-                );
-        driverController
-                .y()
-                .whileTrue(
-                        superstructure
-                                .runGoal(() -> SuperstructureState.L2)
-                                .until(driverController.x())
-                                .andThen(
-                                        superstructure
-                                                .runGoal(() -> SuperstructureState.L2_EJECT)
-                                                .until(() -> !superstructure.hasCoral())
-                                )
-                );
-        driverController
-                .leftBumper()
+                .button(2)
                 .whileTrue(
                         superstructure
                                 .runGoal(() -> SuperstructureState.CORAL_GROUND_INTAKE)
@@ -346,7 +339,25 @@ public class RobotContainer {
     }
 
     private void configureStreamDeckBindings() {
+        streamDeckController
+                .button(1)
+                .onTrue(
+                        Commands.runOnce(
+                                () -> DestinationSupplier
+                                        .getInstance()
+                                        .setStateSetPoint(SuperstructureState.L4)
+                        )
+                );
 
+        streamDeckController
+                .button(2)
+                .onTrue(
+                        Commands.runOnce(
+                                () -> DestinationSupplier
+                                        .getInstance()
+                                        .setStateSetPoint(SuperstructureState.L3)
+                        )
+                );
     }
 
     public void configureTesterBindings() {

@@ -48,10 +48,10 @@ public class AutoActions {
     }
 
     public Command setL4() {
-        return Commands.runOnce(() -> destinationSupplier.updateElevatorSetpoint(SuperstructureState.L4));
+        return Commands.runOnce(() -> destinationSupplier.setStateSetPoint(SuperstructureState.L4));
     }
 
     public Command setLevel(SuperstructureState setpoint) {
-        return Commands.runOnce(() -> destinationSupplier.updateElevatorSetpoint(setpoint));
+        return Commands.runOnce(() -> destinationSupplier.setStateSetPoint(setpoint));
     }
 }

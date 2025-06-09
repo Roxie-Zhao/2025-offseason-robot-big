@@ -27,7 +27,6 @@ import java.util.function.Supplier;
 
 public class Superstructure extends SubsystemBase {
 
-
     private final Graph<SuperstructureState, EdgeCommand> graph = new DefaultDirectedGraph<>(EdgeCommand.class);
 
     @Getter private SuperstructureState state = SuperstructureState.START;
@@ -284,7 +283,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command runGoal(Supplier<SuperstructureState> goal) {
-        return Commands.run(() -> setGoal(goal.get()));
+        return run(() -> setGoal(goal.get()));
     }
 
     public Command runZero(){

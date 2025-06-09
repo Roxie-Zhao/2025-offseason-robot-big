@@ -43,7 +43,7 @@ public class SuperCycleCommand extends SequentialCommandGroup {
                                         .runGoal(
                                                 () -> DestinationSupplier
                                                         .getInstance()
-                                                        .ejectStateTransition()
+                                                        .getShootState()
                                         ).until(() -> !superstructure.hasCoral()),
                                 // take algae
                                 takeAlgae()
@@ -60,45 +60,70 @@ public class SuperCycleCommand extends SequentialCommandGroup {
 // whenever the right trigger is pressed, the preShootCoral Command will end and
 // continue to shoot
     private Command preShootCoral() {
-        return Commands.parallel(
-                // move the robot to the correct position
-                Commands.sequence(
-                        new ReefAimCommand(stop, superstructure, driverController, indicatorSubsystem),
-                        Commands.waitSeconds(0.3)
-                ),
+        return setCurrentGamePiece(DestinationSupplier.GamePiece.CORAL_SCORING)
+                .andThen(
+                    Commands.parallel(
+                        // move the robot to the correct position
+                        Commands.sequence(
+                                new ReefAimCommand(stop, driverController, indicatorSubsystem),
+                                Commands.waitSeconds(0.3)
+                        ),
 
-                // set up the elevator and end effector
-                superstructure
-                        .runGoal(() -> DestinationSupplier
-                                .getInstance()
-                                .getCurrentElevSetpointCoral())
-                        .until(() ->
-                                (driverController.rightTrigger().getAsBoolean() && Robot.isReal()))
-        );
+                        // set up the elevator and end effector
+                        // first check: if the robot is going to L4, it has to wait until it reaches
+                        // a safe to raise position
+                        Commands.waitUntil(this::isSafeToRaise)
+                                .onlyIf(() -> (DestinationSupplier
+                                        .getInstance().getPreState() == SuperstructureState.L4))
+                                .andThen(superstructure
+                                        .runGoal(() -> DestinationSupplier
+                                                .getInstance()
+                                                .getPreState())
+                                        .until(superstructure::poseAtGoal))
+
+        ));
+
     }
 
     private Command takeAlgae() {
-        DestinationSupplier.getInstance().updatePokeSetpointByTag(
-                DestinationSupplier.getNearestTagID(
-                        Swerve.getInstance().getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp())));
-        var safeToRaise = DestinationSupplier.isSafeToRaise(
-                Swerve.getInstance().getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()),
-                DestinationSupplier.getInstance().getCurrentBranch());
+//        var safeToRaise = DestinationSupplier.isSafeToRaise(
+//                Swerve.getInstance().getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()),
+//                DestinationSupplier.getInstance().getCurrentBranch());
 
+        return setCurrentGamePiece(DestinationSupplier.GamePiece.ALGAE_INTAKING).
+                andThen(setAlgaePosition()).
+                andThen(Commands.parallel(
+                        // move to the correct position
+                        new ReefAimCommand(stop, driverController, indicatorSubsystem),
+                        // set up ee and elevator and take the algae
+                        superstructure
+                                .runGoal(() -> DestinationSupplier
+                                        .getInstance()
+                                        .getPreState())
+                                .until(superstructure::hasAlgae)
+                    )
+                );
+    }
 
-        return Commands.parallel(
-                // change the current game piece
-                Commands.runOnce(() ->
-                        DestinationSupplier.getInstance().setCurrentGamePiece(DestinationSupplier.GamePiece.ALGAE_INTAKING)),
-                // move to the correct position
-                new ReefAimCommand(stop, superstructure, driverController, indicatorSubsystem),
-                // set up ee and elevator and take the algae
-                superstructure
-                        .runGoal(() -> DestinationSupplier
-                                .getInstance()
-                                .getCurrentElevSetpointAlgae())
-                        .until(superstructure::hasAlgae)
-        ).onlyIf(() -> safeToRaise)
-                .onlyIf(() -> DestinationSupplier.getInstance().useSuperCycle);
+    private Command setCurrentGamePiece(DestinationSupplier.GamePiece currentGamePiece) {
+        return Commands.runOnce(
+                () -> DestinationSupplier
+                        .getInstance()
+                        .setCurrentGamePiece(currentGamePiece)
+        );
+    }
+
+    private Command setAlgaePosition() {
+        return Commands.runOnce(
+                () ->  DestinationSupplier.getInstance().updatePokeSetpointByTag(
+                        DestinationSupplier.getNearestTagID(
+                                Swerve.getInstance().getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp())))
+        );
+    }
+
+    private boolean isSafeToRaise() {
+        return  DestinationSupplier.isSafeToRaise(
+                    Swerve.getInstance().getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()),
+                    DestinationSupplier.getInstance().getCurrentBranch());
     }
 }
