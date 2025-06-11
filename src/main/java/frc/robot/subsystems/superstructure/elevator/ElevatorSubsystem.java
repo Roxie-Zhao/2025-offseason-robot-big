@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.superstructure.SuperstructurePose;
 import frc.robot.subsystems.superstructure.elevator.ElevatorIOInputsAutoLogged;
 import frc.robot.utils.LoggedTracer;
 import lombok.Getter;
@@ -19,7 +18,7 @@ import static frc.robot.RobotConstants.ElevatorConstants.ELEVATOR_SPOOL_DIAMETER
 
 import java.util.function.DoubleSupplier;
 
-public class ElevatorSubsystem extends SubsystemBase {
+public class ElevatorSubsystem  {
     @Getter
     private final ElevatorIO io;
     private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
@@ -34,20 +33,28 @@ public class ElevatorSubsystem extends SubsystemBase {
     @Getter
     @AutoLogOutput(key = "Elevator/atGoal")
     private boolean atGoal = false;
-    @AutoLogOutput(key = "Elevator/stopProfile")
-    private boolean stopProfile = false;
+    @AutoLogOutput(key = "Elevator/stopDueToLimit")
+    private boolean stopDueToLimit = false;
 
     public ElevatorSubsystem(ElevatorIO io) {
         this.io = io;
     }
 
-    //TODO:Add check Limit
-    @Override
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Elevator", inputs);
-        final boolean runningGoal = 
-            !stopProfile;
+        
+        // Check if position exceeds maximum extension
+        if (wantedPosition > ElevatorConstants.MAX_EXTENSION_METERS.get()) {
+            stopDueToLimit = true;
+            throw new IllegalArgumentException("Elevator setpoint " + wantedPosition + " exceeds maximum extension of " + 
+                ElevatorConstants.MAX_EXTENSION_METERS.get() + " meters");
+        } else if (stopDueToLimit) {
+            // Reset stopDueToLimit if position is now valid
+            stopDueToLimit = false;
+        }
+
+        final boolean runningGoal = !stopDueToLimit && !zeroing;
         if (runningGoal) {
             atGoal = elevatorAtGoal(ElevatorConstants.ELEVATOR_GOAL_TOLERANCE.get());
             io.setElevatorTarget(wantedPosition);
@@ -72,7 +79,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     public Command zeroElevator() {
         return Commands.startRun(
             () -> {
-                stopProfile = true;
                 zeroing = true;
             },
             () -> {
@@ -95,12 +101,11 @@ public class ElevatorSubsystem extends SubsystemBase {
             })
             .until(() -> !zeroing)
             .finallyDo(() -> {
-                stopProfile = false;
                 zeroing = false;
             });
     }
 
     public boolean isSafeToFlip() {
-        return (inputs.positionMeters > ElevatorConstants.ELEVATOR_MIN_SAFE_HEIGHT.get());
+        return (inputs.positionMeters > ElevatorConstants.SAFE_HEIGHT_FLIP.get());
     }
 }

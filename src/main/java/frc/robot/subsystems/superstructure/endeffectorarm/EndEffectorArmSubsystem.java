@@ -1,34 +1,15 @@
 package frc.robot.subsystems.superstructure.endeffectorarm;
 
-import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Temperature;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotConstants;
-import frc.robot.RobotContainer;
 import frc.robot.RobotConstants.EndEffectorArmConstants;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
-import frc.robot.subsystems.superstructure.endeffectorarm.EndEffectorArmPivotIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;    
 import frc.robot.subsystems.roller.RollerIOInputsAutoLogged;
-import frc.robot.subsystems.superstructure.DestinationSupplier;
-import frc.robot.subsystems.superstructure.SuperstructureVisualizer;
 import frc.robot.utils.LoggedTracer;
-import frc.robot.utils.TimeDelayedBoolean;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,13 +17,12 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import static frc.robot.RobotConstants.CANIVORE_CAN_BUS_NAME;
 import static frc.robot.RobotConstants.EndEffectorArmConstants.*;
 import static frc.robot.RobotConstants.EndEffectorArmConstants.EndEffectorArmRollerGainsClass.*;
 
 import java.util.function.DoubleSupplier;
 
-public class EndEffectorArmSubsystem extends SubsystemBase {
+public class EndEffectorArmSubsystem {
     public static final String NAME = "EndEffectorArm";
     // IO devices and their inputs
     private final EndEffectorArmPivotIO armPivotIO;
@@ -62,6 +42,8 @@ public class EndEffectorArmSubsystem extends SubsystemBase {
     private double wantedAngle = 0.0;
     @Getter@AutoLogOutput(key = "EndEffectorArm/atGoal")
     private boolean atGoal = false;
+    @AutoLogOutput(key = "EndEffectorArm/stopDueToLimit")
+    private boolean stopDueToLimit = false;
 
     @Getter
     @Setter
@@ -93,13 +75,22 @@ public class EndEffectorArmSubsystem extends SubsystemBase {
         );
     }
 
-    @Override
     public void periodic() {
         // Update inputs from hardware
         armPivotIO.updateInputs(armPivotIOInputs);
         coralBeambreakIO.updateInputs(coralBeambreakInputs);
         algaeBeambreakIO.updateInputs(algaeBeambreakInputs);
         rollerIO.updateInputs(armRollerIOInputs);
+
+        // Check if angle exceeds maximum limit
+        if (wantedAngle > EndEffectorArmConstants.MAX_ANGLE_DEGREES.get()) {
+            stopDueToLimit = true;
+            throw new IllegalArgumentException("EndEffectorArm setpoint " + wantedAngle + " exceeds maximum angle of " + 
+                EndEffectorArmConstants.MAX_ANGLE_DEGREES.get() + " degrees");
+        } else if (stopDueToLimit) {
+            // Reset stopDueToLimit if angle is now valid
+            stopDueToLimit = false;
+        }
 
         if (RobotBase.isReal()) {
             // Update gamepiece tracking
@@ -118,7 +109,9 @@ public class EndEffectorArmSubsystem extends SubsystemBase {
 
         // Update goal status and set pivot angle
         atGoal = isNearAngle(wantedAngle,EndEffectorArmConstants.END_EFFECTOR_ARM_PIVIOT_TOLERANCE.get());
-        armPivotIO.setPivotAngle(wantedAngle);
+        if (!stopDueToLimit) {
+            armPivotIO.setPivotAngle(wantedAngle);
+        }
 
         // Update tunable numbers if tuning is enabled
         if (RobotConstants.TUNING) {

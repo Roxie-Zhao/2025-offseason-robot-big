@@ -395,11 +395,11 @@ public final class RobotConstants {
                 100);
         public static final TunableNumber motionJerk = new TunableNumber("Elevator/MotionJerk",
                 0.0);
-        public static final TunableNumber MAX_EXTENSION_METERS = new TunableNumber("ELEVATOR SETPOINTS/max",
-                1.4);
-        public static final TunableNumber ELEVATOR_ZEROING_CURRENT = new TunableNumber("Elevator zeroing current",
+        public static final TunableNumber MAX_EXTENSION_METERS = new TunableNumber("ELEVATOR/maxExtension",
+                1.41);
+        public static final TunableNumber ELEVATOR_ZEROING_CURRENT = new TunableNumber("ELEVATOR/zeroingCurrent",
                 40);
-        public static final TunableNumber ELEVATOR_MIN_SAFE_HEIGHT = new TunableNumber("Elevator min safe height", 0.54);
+        public static final TunableNumber SAFE_HEIGHT_FLIP = new TunableNumber("ELEVATOR/safeHeightFlip", 0.54);
 
     }
 
@@ -440,6 +440,7 @@ public final class RobotConstants {
         // Pivot motor configuration
         public static final double ROTOR_SENSOR_RATIO = 1.0 / 8 * 64 / 18 * 60;
         public static final double END_EFFECTOR_ARM_ENCODER_OFFSET = 0.406494140625;
+        public static final TunableNumber MAX_ANGLE_DEGREES = new TunableNumber("END_EFFECTOR_ARM_PIVOT/maxAngleDegrees", 370.0);
         // Roller voltages for different operations
         public static final TunableNumber CORAL_INTAKE_VOLTAGE = new TunableNumber("END_EFFECTOR_ARM_ROLLER/coralIntakeVoltage", 12.0);
         public static final TunableNumber CORAL_OUTTAKE_VOLTAGE = new TunableNumber("END_EFFECTOR_ARM_ROLLER/coralOuttakeVoltage", -6.0);

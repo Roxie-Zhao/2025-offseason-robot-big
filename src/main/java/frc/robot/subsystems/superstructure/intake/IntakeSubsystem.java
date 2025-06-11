@@ -23,7 +23,7 @@ import org.littletonrobotics.junction.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-public class IntakeSubsystem extends RollerSubsystem {
+public class IntakeSubsystem {
     private final IntakePivotIO intakePivotIO;
     private final RollerIO intakeRollerIO;
     private final IntakePivotIOInputsAutoLogged intakePivotIOInputs = new IntakePivotIOInputsAutoLogged();
@@ -49,13 +49,12 @@ public class IntakeSubsystem extends RollerSubsystem {
             RollerIO intakeRollerIO,
             BeambreakIO BBIO
     ) {
-        super(intakeRollerIO, "Intake/Roller");
         this.intakePivotIO = intakePivotIO;
         this.intakeRollerIO = intakeRollerIO;
         this.BBIO = BBIO;
     }
 
-    @Override
+
     public void periodic() {
 
         BBIO.updateInputs(BBInputs);
