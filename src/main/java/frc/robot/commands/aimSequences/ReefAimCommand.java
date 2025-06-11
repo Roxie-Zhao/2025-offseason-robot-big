@@ -40,7 +40,7 @@ public class ReefAimCommand extends Command {
                     ReefAimConstants.MAX_AIMING_SPEED.magnitude(),
                     ReefAimConstants.MAX_AIMING_ACCELERATION.magnitude()));
     private final BooleanSupplier stop;
-    private final CommandXboxController driverController;
+    private final CommandXboxController driverController; 
     private final IndicatorSubsystem indicatorSubsystem;
     private boolean rightReef; // true if shooting right reef
     private boolean xFinished = false;

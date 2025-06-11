@@ -1,7 +1,7 @@
 ---
 description: 
-globs: src/main/**
-alwaysApply: false
+globs: 
+alwaysApply: true
 ---
 This is a code to control a robot that competes in 2025 first robotics competition 
 

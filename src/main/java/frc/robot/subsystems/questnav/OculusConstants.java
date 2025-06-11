@@ -76,15 +76,5 @@ public class OculusConstants {
           0.0872665 // 5deg
           );
 
-  /**
-   * The divisor to divide the translational std devs by for simulation (how much we trust our sim)
-   * Higher = more trust
-   */
-  public static final double SIM_TRUST_TRANSLATION = 5.0;
 
-  /**
-   * The divisor to divide the rotational std devs by for simulation (how much we trust our sim)
-   * Higher = more trust
-   */
-  public static final double SIM_TRUST_ROTATION = 10.0;
 }
