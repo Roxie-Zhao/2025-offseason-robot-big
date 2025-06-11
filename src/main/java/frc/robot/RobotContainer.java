@@ -114,6 +114,14 @@ public class RobotContainer {
                             RobotConstants.IntakeConstants.IS_INVERT,
                             RobotConstants.IntakeConstants.IS_BRAKE
                         ),
+                        new RollerIOReal(
+                            RobotConstants.IntakeConstants.INDEX_MOTOR_ID,
+                            RobotConstants.CANIVORE_CAN_BUS_NAME,
+                            RobotConstants.IntakeConstants.STATOR_CURRENT_LIMIT_AMPS,
+                            RobotConstants.IntakeConstants.SUPPLY_CURRENT_LIMIT_AMPS,
+                            RobotConstants.IntakeConstants.IS_INVERT,
+                            RobotConstants.IntakeConstants.IS_BRAKE
+                        ),
                         new BeambreakIOReal(RobotConstants.BeamBreakConstants.INTAKE_BEAMBREAK_ID)
                 );
                 climberSubsystem = new ClimberSubsystem(new ClimberIOReal());
@@ -145,6 +153,9 @@ public class RobotContainer {
                             new SimpleMotorFeedforward(0.0, 0.24),
                             new ProfiledPIDController(0.5, 0.0, 0.0,
                                 new TrapezoidProfile.Constraints(15, 1))),
+                        new RollerIOSim(1, 1.0, new SimpleMotorFeedforward(0.0, 0.24),
+                                new ProfiledPIDController(0.5, 0.0, 0.0,
+                                        new TrapezoidProfile.Constraints(15, 1))),
                         new BeambreakIOSim(RobotConstants.BeamBreakConstants.INTAKE_BEAMBREAK_ID)
                 );
                 climberSubsystem = new ClimberSubsystem(new ClimberIOSim());
@@ -194,6 +205,8 @@ public class RobotContainer {
         if (intakeSubsystem == null) {
             intakeSubsystem = new IntakeSubsystem(
                     new IntakePivotIO() {
+                    },
+                    new RollerIO() {
                     },
                     new RollerIO() {
                     },
@@ -270,55 +283,38 @@ public class RobotContainer {
                     lastResetTime = Timer.getFPGATimestamp();
                     indicatorSubsystem.setPattern(IndicatorIO.Patterns.RESET_ODOM);
                 }).ignoringDisable(true));
+
         // // Climbing
-        // driverController.povUp().whileTrue(new PreClimbCommand(climberSubsystem, elevatorSubsystem, intakeSubsystem, endEffectorArmSubsystem));
-        // driverController.povLeft().whileTrue(new IdleClimbCommand(climberSubsystem, elevatorSubsystem, intakeSubsystem, endEffectorArmSubsystem));
-        // driverController.y().whileTrue(new ClimbCommand(climberSubsystem, elevatorSubsystem, intakeSubsystem, endEffectorArmSubsystem));
+        // driverController
+        //         .povUp()
+        //         .whileTrue(
+        //             Commands.parallel(
+        //                     superstructure
+        //                             .runGoal(() -> SuperstructureState.AVOID),
+        //                     new PreClimbCommand(climberSubsystem)
+        //             )
+        //         );
 
-        // Climbing
-        driverController
-                .povUp()
-                .whileTrue(
-                    Commands.parallel(
-                            superstructure
-                                    .runGoal(() -> SuperstructureState.AVOID),
-                            new PreClimbCommand(climberSubsystem)
-                    )
-                );
+        // driverController
+        //         .y()
+        //         .whileTrue(
+        //                 new ClimbCommand(climberSubsystem)
+        //                         .onlyIf(
+        //                                 () -> superstructure.getState() == SuperstructureState.AVOID
+        //                         )
+        //         );
 
-        driverController
-                .y()
-                .whileTrue(
-                        new ClimbCommand(climberSubsystem)
-                                .onlyIf(
-                                        () -> superstructure.getState() == SuperstructureState.AVOID
-                                )
-                );
-
-        driverController
-                .povLeft()
-                .whileTrue(
-                        Commands.parallel(
-                                superstructure
-                                        .runGoal(() -> SuperstructureState.AVOID),
-                                new IdleClimbCommand(climberSubsystem)
-                        )
-                );
+        // driverController
+        //         .povLeft()
+        //         .whileTrue(
+        //                 Commands.parallel(
+        //                         superstructure
+        //                                 .runGoal(() -> SuperstructureState.AVOID),
+        //                         new IdleClimbCommand(climberSubsystem)
+        //                 )
+        //         );
 
 
-
-//        driverController
-//                .b()
-//                .whileTrue(
-//                        superstructure
-//                                .runGoal(() -> SuperstructureState.L4)
-//                                .until(driverController.x())
-//                                .andThen(
-//                                        superstructure
-//                                                .runGoal(() -> SuperstructureState.L4_EJECT)
-//                                                .until(() -> !superstructure.hasCoral())
-//                                )
-//                );
 
         driverController
                 .button(1)
@@ -332,9 +328,27 @@ public class RobotContainer {
         driverController
                 .button(2)
                 .whileTrue(
+                    Commands.either(
                         superstructure
-                                .runGoal(() -> SuperstructureState.CORAL_GROUND_INTAKE)
-                                .until(superstructure::hasCoral)
+                            .runGoal(() -> SuperstructureState.CORAL_INDEXED_INTAKE)
+                            .until(() -> superstructure.hasAlgae() && superstructure.indexedCoral()),
+                        superstructure
+                            .runGoal(() -> SuperstructureState.CORAL_GROUND_INTAKE)
+                            .until(() -> superstructure.hasCoral()),
+                        superstructure::hasAlgae
+                    )
+                );
+        driverController
+                .button(3)
+                .whileTrue(
+                    superstructure
+                        .runGoal(() -> SuperstructureState.NET_SCORE)
+                        .until(driverController.button(4))
+                        .andThen(
+                            superstructure
+                                .runGoal(() -> SuperstructureState.NET_SCORE_EJECT)
+                                .until(() -> !superstructure.hasAlgae())
+                        )
                 );
     }
 

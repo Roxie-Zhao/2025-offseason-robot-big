@@ -12,66 +12,85 @@ import frc.robot.subsystems.superstructure.SuperstructureStateData.Superstructur
 @RequiredArgsConstructor
 public enum SuperstructureState {
     // Stow positions
-    START(createState(Preset.START, null, null)),
-    CORAL_STOW(createState(Preset.CORAL_STOW, null, null)),
-    ALGAE_STOW(createState(Preset.ALGAE_STOW, null, null)),
-    IDLE(createState(Preset.IDLE, null, null)),
-    AVOID(createState(Preset.AVOID, null, null)),
+    START(createState(Preset.START)),
+    CORAL_STOW(createEEState(Preset.CORAL_STOW, () -> EndEffectorArmConstants.CORAL_HOLD_VOLTAGE.get())),
+    ALGAE_STOW(createEEState(Preset.ALGAE_STOW, () -> EndEffectorArmConstants.ALGAE_HOLD_VOLTAGE.get())),
+    IDLE(createState(Preset.IDLE)),
+    AVOID(createState(Preset.AVOID)),
 
     // L1 positions
-    L1_INTAKE_SIDE(createState(Preset.L1_INTAKE_SIDE, null, null)),
-    L1_INTAKE_SIDE_EJECT(createState(L1_INTAKE_SIDE, () -> IntakeConstants.OUTTAKE_VOLTAGE.get(), null)),
-    L1_SHOOT_SIDE(createState(Preset.L1_SHOOT_SIDE, null, null)),
-    L1_SHOOT_SIDE_EJECT(createState(L1_SHOOT_SIDE, null, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE_L1.get())),
+    //TODO: L1_intake_side
+    L1_INTAKE_SIDE(createState(Preset.L1_INTAKE_SIDE)),
+    L1_INTAKE_SIDE_EJECT(createIntakeState(L1_INTAKE_SIDE, () -> IntakeConstants.OUTTAKE_VOLTAGE.get())),
+    L1_SHOOT_SIDE(createState(Preset.L1_SHOOT_SIDE)),
+    L1_SHOOT_SIDE_EJECT(createEEState(L1_SHOOT_SIDE, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE_L1.get())),
 
     // L2-L4 positions
-    L2(createState(Preset.L2, null, null)),
-    L2_EJECT(createState(L2, null, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
-    L3(createState(Preset.L3, null, null)),
-    L3_EJECT(createState(L3, null, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
-    L4(createState(Preset.L4, null, null)),
-    L4_EJECT(createState(L4, null, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
+    L2(createState(Preset.L2)),
+    L2_EJECT(createEEState(L2, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
+    L3(createState(Preset.L3)),
+    L3_EJECT(createEEState(L3, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
+    L4(createState(Preset.L4)),
+    L4_EJECT(createEEState(L4, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
 
     // Net scoring positions
-    NET_SCORE(createState(Preset.NET_SCORE, null, null)),
-    NET_SCORE_EJECT(createState(NET_SCORE, null, () -> EndEffectorArmConstants.ALGAE_NET_SHOOT_VOLTAGE.get())),
+    NET_SCORE(createState(Preset.NET_SCORE)),
+    NET_SCORE_EJECT(createEEState(NET_SCORE, () -> EndEffectorArmConstants.ALGAE_NET_SHOOT_VOLTAGE.get())),
 
     // Processor scoring positions
-    PROCESSOR_SCORE(createState(Preset.PROCESSOR, null, null)),
-    PROCESSOR_SCORE_EJECT(createState(PROCESSOR_SCORE, null, () -> EndEffectorArmConstants.ALGAE_PROCESSOR_SHOOT_VOLTAGE.get())),
+    PROCESSOR_SCORE(createState(Preset.PROCESSOR)),
+    PROCESSOR_SCORE_EJECT(createEEState(PROCESSOR_SCORE, () -> EndEffectorArmConstants.ALGAE_PROCESSOR_SHOOT_VOLTAGE.get())),
 
     // Pickup positions
-    P1(createState(Preset.P1, null, () -> EndEffectorArmConstants.ALGAE_INTAKE_VOLTAGE.get())),
-    P2(createState(Preset.P2, null, () -> EndEffectorArmConstants.ALGAE_INTAKE_VOLTAGE.get())),
-    CORAL_GROUND_INTAKE(createState(Preset.CORAL_GROUND_INTAKE, () -> IntakeConstants.INTAKE_VOLTAGE.get(), () -> EndEffectorArmConstants.CORAL_INTAKE_VOLTAGE.get()));
+    P1(createEEState(Preset.P1, () -> EndEffectorArmConstants.ALGAE_INTAKE_VOLTAGE.get())),
+    P2(createEEState(Preset.P2, () -> EndEffectorArmConstants.ALGAE_INTAKE_VOLTAGE.get())),
+    CORAL_GROUND_INTAKE(createState(Preset.CORAL_GROUND_INTAKE, 
+        () -> IntakeConstants.INTAKE_VOLTAGE.get(), 
+        () -> IntakeConstants.INDEX_ROLLER_VOLTAGE.get(),
+        () -> EndEffectorArmConstants.CORAL_INTAKE_VOLTAGE.get())),
+    CORAL_INDEXED_INTAKE(createState(Preset.CORAL_INDEXED_INTAKE,
+        () -> IntakeConstants.INTAKE_VOLTAGE.get(), 
+        () -> 0,
+        () -> EndEffectorArmConstants.ALGAE_HOLD_VOLTAGE.get()));
 
     private final SuperstructureStateData value;
 
-    // Helper methods to create states
-    private static SuperstructureStateData createState(Preset preset, DoubleSupplier intakeVoltage, DoubleSupplier eeVoltage) {
-        var builder = SuperstructureStateData.builder()
-            .pose(preset.getPose());
-        
-        if (intakeVoltage != null) {
-            builder.intakeVolts(intakeVoltage);
-        }
-        if (eeVoltage != null) {
-            builder.endEffectorVolts(eeVoltage);
-        }
-        
-        return builder.build();
+    // Creates a basic state with just the pose
+    private static SuperstructureStateData createState(Preset preset) {
+        return SuperstructureStateData.builder()
+            .pose(preset.getPose())
+            .build();
     }
 
-    private static SuperstructureStateData createState(SuperstructureState baseState, DoubleSupplier intakeVoltage, DoubleSupplier eeVoltage) {
-        var builder = baseState.getValue().toBuilder();
-        
-        if (intakeVoltage != null) {
-            builder.intakeVolts(intakeVoltage);
-        }
-        if (eeVoltage != null) {
-            builder.endEffectorVolts(eeVoltage);
-        }
-        
-        return builder.build();
+    // Creates a state with end effector voltage
+    private static SuperstructureStateData createEEState(Preset preset, DoubleSupplier eeVoltage) {
+        return SuperstructureStateData.builder()
+            .pose(preset.getPose())
+            .endEffectorVolts(eeVoltage)
+            .build();
+    }
+
+    // Creates a state with end effector voltage from an existing state
+    private static SuperstructureStateData createEEState(SuperstructureState baseState, DoubleSupplier eeVoltage) {
+        return baseState.getValue().toBuilder()
+            .endEffectorVolts(eeVoltage)
+            .build();
+    }
+
+    // Creates a state with intake voltage
+    private static SuperstructureStateData createIntakeState(SuperstructureState baseState, DoubleSupplier intakeVoltage) {
+        return baseState.getValue().toBuilder()
+            .intakeVolts(intakeVoltage)
+            .build();
+    }
+
+    // Creates a state with both intake and end effector voltages
+    private static SuperstructureStateData createState(Preset preset, DoubleSupplier intakeVoltage, DoubleSupplier indexRollerVoltage, DoubleSupplier eeVoltage) {
+        return SuperstructureStateData.builder()
+            .pose(preset.getPose())
+            .intakeVolts(intakeVoltage)
+            .indexRollerVolts(indexRollerVoltage)
+            .endEffectorVolts(eeVoltage)
+            .build();
     }
 }

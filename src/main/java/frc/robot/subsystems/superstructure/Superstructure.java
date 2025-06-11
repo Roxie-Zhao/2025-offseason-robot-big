@@ -140,6 +140,8 @@ public class Superstructure extends SubsystemBase {
                     return SuperstructureState.CORAL_STOW;
                 } else if (endEffectorArm.isHasAlgae()) {
                     return SuperstructureState.ALGAE_STOW;
+                } else if (intake.isIndexRollerHasCoral()) {
+                    return SuperstructureState.CORAL_GROUND_INTAKE;
                 } else {
                     return SuperstructureState.IDLE;
                 }
@@ -156,6 +158,7 @@ public class Superstructure extends SubsystemBase {
         Set.of(
             SuperstructureState.CORAL_STOW,
             SuperstructureState.ALGAE_STOW,
+            SuperstructureState.CORAL_INDEXED_INTAKE,
             SuperstructureState.L3,
             SuperstructureState.L4,
             SuperstructureState.P2,
@@ -179,32 +182,29 @@ public class Superstructure extends SubsystemBase {
         //simulated gamepiece tracking
         if (!RobotBase.isReal() && !RobotConstants.useReplay) {
             if (atGoal()&&state == SuperstructureState.CORAL_GROUND_INTAKE){
-                intake.setHasCoral(false);
+                intake.setIndexRollerHasCoral(false);
                 endEffectorArm.setHasCoral(true);
-                endEffectorArm.setHasAlgae(false);
+            }
+            if (atGoal()&&state == SuperstructureState.CORAL_INDEXED_INTAKE){
+                intake.setIndexRollerHasCoral(true);
+                // Keep algae state unchanged since we're just indexing coral
             }
             for (var pair : shootStates){
                 if (atGoal()&&state == pair.getSecond()){
-                    intake.setHasCoral(false);
                     endEffectorArm.setHasCoral(false);
-                    endEffectorArm.setHasAlgae(false);
                 }
             }
             if (atGoal()&&(state == SuperstructureState.P1 || state == SuperstructureState.P2)){
-                intake.setHasCoral(false);
-                endEffectorArm.setHasCoral(false);
                 endEffectorArm.setHasAlgae(true);
             }
             if (atGoal()&&state == SuperstructureState.NET_SCORE_EJECT){
-                intake.setHasCoral(false);
-                endEffectorArm.setHasCoral(false);
                 endEffectorArm.setHasAlgae(false);
             }
         }
 
         //log the gamepiece tracking
         measuredPoseVisualizer.logCoralPose3D(
-            intake.isHasCoral(),
+            intake.isIndexRollerHasCoral(),
             endEffectorArm.isHasCoral(),
             endEffectorArm.isHasAlgae()
         );
@@ -449,6 +449,10 @@ public class Superstructure extends SubsystemBase {
         return endEffectorArm.isHasAlgae();
     }
 
+    public boolean indexedCoral(){
+        return intake.isIndexRollerHasCoral();
+    }
+
     public double getElevatorPosition() {
         return elevator.getElevatorPosition();
     }
@@ -478,12 +482,21 @@ public class Superstructure extends SubsystemBase {
     private Command runSuperstructureRollers(SuperstructureState state){
         return Commands.runOnce(() ->{
             endEffectorArm.setRollerVoltage(state.getValue().getEndEffectorVolts());
-            intake.setRollerVoltage(state.getValue().getIntakeVolts());
+            intake.setIntakeRollerVoltage(state.getValue().getIntakeVolts());
+            intake.setIndexRollerVoltage(state.getValue().getIndexRollerVolts());
         });
     }
 
     // declare all edge commands here
     private Command getEdgeCommand(SuperstructureState from, SuperstructureState to) {
+        // Special handling for coral indexing while holding algae - only move intake
+        if (to == SuperstructureState.CORAL_INDEXED_INTAKE) {
+            return runIntake(to.getValue().getPose().intakeAngle())
+                .andThen(
+                    Commands.waitUntil(intake::isAtGoal),
+                    runSuperstructureRollers(to)
+                );
+        }
         // is safe to flip inorder to produce a smoother elevator motion
         // TODO: Test this
         if (to == SuperstructureState.AVOID) {

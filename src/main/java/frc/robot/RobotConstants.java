@@ -305,6 +305,8 @@ public final class RobotConstants {
      */
     public static class IntakeConstants {
         public static final int INTAKE_MOTOR_ID = 15;
+        //todo:change
+        public static final int INDEX_MOTOR_ID = 20;
         public static final int INTAKE_PIVOT_MOTOR_ID = 16;
         public static final int INTAKE_PIVOT_ENCODER_ID = 17;
         public static final double INTAKE_PIVOT_ROTOR_ENCODER_RATIO = (12.0 * 50) / 11;
@@ -328,6 +330,7 @@ public final class RobotConstants {
         public static final double INTAKE_PIVOT_ENCODER_OFFSET = -0.018473310625;
         //Motion constants for intake roller
         public static final TunableNumber INTAKE_VOLTAGE = new TunableNumber("INTAKE_ROLLER/intakeVoltage", 15.0);
+        public static final TunableNumber INDEX_ROLLER_VOLTAGE = new TunableNumber("INTAKE_ROLLER/indexRollerVoltage", 15.0);
         public static final TunableNumber OUTTAKE_VOLTAGE = new TunableNumber("INTAKE_ROLLER/outtakeVoltage", -6.0);
         public static final TunableNumber SHOOT_VOLTAGE = new TunableNumber("INTAKE_ROLLER/shootVoltage", -2.5);
         public static final TunableNumber INTAKE_HOLD_VOLTAGE = new TunableNumber("INTAKE_ROLLER/intakeHoldVoltage", 5.0);

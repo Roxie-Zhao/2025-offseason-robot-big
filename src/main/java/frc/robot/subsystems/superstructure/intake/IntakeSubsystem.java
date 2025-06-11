@@ -26,8 +26,10 @@ import lombok.Setter;
 public class IntakeSubsystem {
     private final IntakePivotIO intakePivotIO;
     private final RollerIO intakeRollerIO;
+    private final RollerIO indexRollerIO;
     private final IntakePivotIOInputsAutoLogged intakePivotIOInputs = new IntakePivotIOInputsAutoLogged();
     private final RollerIOInputsAutoLogged intakeRollerIOInputs = new RollerIOInputsAutoLogged();
+    private final RollerIOInputsAutoLogged indexRollerIOInputs = new RollerIOInputsAutoLogged();
     private final BeambreakIO BBIO;
     private final BeambreakIOInputsAutoLogged BBInputs = new BeambreakIOInputsAutoLogged();
 
@@ -41,16 +43,18 @@ public class IntakeSubsystem {
 
     @Getter
     @Setter
-    @AutoLogOutput(key = "Intake/hasCoral")
-    private boolean hasCoral = false;
+    @AutoLogOutput(key = "Intake/indexRollerHasCoral")
+    private boolean indexRollerHasCoral = false;
 
     public IntakeSubsystem(
             IntakePivotIO intakePivotIO,
             RollerIO intakeRollerIO,
+            RollerIO indexRollerIO,
             BeambreakIO BBIO
     ) {
         this.intakePivotIO = intakePivotIO;
         this.intakeRollerIO = intakeRollerIO;
+        this.indexRollerIO = indexRollerIO;
         this.BBIO = BBIO;
     }
 
@@ -60,17 +64,19 @@ public class IntakeSubsystem {
         BBIO.updateInputs(BBInputs);
         intakePivotIO.updateInputs(intakePivotIOInputs);
         intakeRollerIO.updateInputs(intakeRollerIOInputs);
+        indexRollerIO.updateInputs(indexRollerIOInputs);
 
         Logger.processInputs("Intake/Pivot", intakePivotIOInputs);
         Logger.processInputs("Intake/Roller", intakeRollerIOInputs);
+        Logger.processInputs("Intake/IndexRoller", indexRollerIOInputs);
         Logger.processInputs("Intake/Roller/Beambreak", BBInputs);
         atGoal = isNearAngle(wantedAngle, IntakeConstants.INTAKE_PIVOT_TOLERANCE.get());
         intakePivotIO.setPivotAngle(wantedAngle);
 
         //TODO: add Debouncer or filter to prevent false positives
         if (RobotBase.isReal()) {
-            hasCoral = BBInputs.isBeambreakOn;
-            SmartDashboard.putBoolean("GamePiece/IntakeHasCoral", hasCoral);
+            indexRollerHasCoral = BBInputs.isBeambreakOn;
+            SmartDashboard.putBoolean("GamePiece/IndexRollerHasCoral", indexRollerHasCoral);
         }
         LoggedTracer.record("Intake");
     }
@@ -103,7 +109,7 @@ public class IntakeSubsystem {
         intakePivotIO.setMotorVoltage(voltage);
     }
 
-    public void setRollerVoltage(DoubleSupplier voltage) {
+    public void setIntakeRollerVoltage(DoubleSupplier voltage) {
         intakeRollerIO.setVoltage(voltage.getAsDouble());
     }
 
@@ -113,6 +119,14 @@ public class IntakeSubsystem {
 
     public double getCurrentAngle() {
         return intakePivotIOInputs.currentAngleDeg;
+    }
+
+    public void setIndexRollerVoltage(DoubleSupplier voltage) {
+        indexRollerIO.setVoltage(voltage.getAsDouble());
+    }
+
+    public void stopIndexRoller() {
+        indexRollerIO.stop();
     }
 
 }

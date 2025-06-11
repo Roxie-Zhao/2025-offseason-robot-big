@@ -14,5 +14,6 @@ public class SuperstructureStateData {
     private final SuperstructurePose pose = new SuperstructurePose(() -> 0.0, () -> 0.0, () -> 0.0);
 
     @Builder.Default private final DoubleSupplier intakeVolts = () -> 0.0;
+    @Builder.Default private final DoubleSupplier indexRollerVolts = () -> 0.0;
     @Builder.Default private final DoubleSupplier endEffectorVolts = () -> 0.0;
 } 
