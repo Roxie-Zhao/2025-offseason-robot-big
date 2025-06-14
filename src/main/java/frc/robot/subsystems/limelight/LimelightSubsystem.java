@@ -114,7 +114,7 @@ public class LimelightSubsystem extends SubsystemBase {
 
     private void addVisionMeasurement() {
         limelightIOs.forEach((name, io) -> {
-            io.setRobotOrientation(swerveLocalizer.getLatestPose().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+            io.setRobotOrientation(swerveLocalizer.getLatestPose().getRotation().getDegrees() + 180, 0, 0, 0, 0, 0);
         });
 
         AngularVelocity gyroRate = Units.DegreesPerSecond.of(swerveLocalizer.getSmoothedVelocity().getRotation().getDegrees());

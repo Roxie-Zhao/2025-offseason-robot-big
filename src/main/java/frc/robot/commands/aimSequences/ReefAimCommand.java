@@ -77,8 +77,8 @@ public class ReefAimCommand extends Command {
         destinationPose = AimGoalSupplier.getDriveTarget(robotPose, finalDestinationPose);
 
         // Get velocities in field coordinates
-        double vx = swerve.getSwerveVelocity().vxMetersPerSecond;
-        double vy = swerve.getSwerveVelocity().vyMetersPerSecond;
+        double vx = swerve.getInstance().getLocalizer().getSmoothedVelocity().getX();
+        double vy = swerve.getInstance().getLocalizer().getSmoothedVelocity().getY();
         
         // Flip velocities if needed
         if (AllianceFlipUtil.shouldFlip()) {
@@ -87,8 +87,8 @@ public class ReefAimCommand extends Command {
         }
 
         // PID init with field-relative velocities
-        xPID.reset(robotPose.getX(), vx);
-        yPID.reset(robotPose.getY(), vy);
+        xPID.reset(robotPose.getX(), swerve.getSwerveVelocity().vxMetersPerSecond);
+        yPID.reset(robotPose.getY(), swerve.getSwerveVelocity().vyMetersPerSecond);
 
         indicatorSubsystem.setPattern(IndicatorIO.Patterns.AIMING);
     }

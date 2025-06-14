@@ -293,7 +293,7 @@ public final class RobotConstants {
 
     /**
      * Constants related to the beambreak subsystem.
-     */
+     */ 
     public static class BeamBreakConstants {
         public static final int ENDEFFECTORARM_CORAL_BEAMBREAK_ID = 0;
         public static final int ENDEFFECTORARM_ALGAE_BEAMBREAK_ID = 2;
@@ -442,7 +442,7 @@ public final class RobotConstants {
 
         // Pivot motor configuration
         public static final double ROTOR_SENSOR_RATIO = 1.0 / 8 * 64 / 18 * 60;
-        public static final TunableNumber END_EFFECTOR_ARM_ENCODER_OFFSET = new TunableNumber("END_EFFECTOR_ARM_PIVOT/encoderOffset", 0.406494140625);
+        public static final TunableNumber END_EFFECTOR_ARM_ENCODER_OFFSET = new TunableNumber("END_EFFECTOR_ARM_PIVOT/encoderOffset", 0.65625);
         public static final TunableNumber MAX_ANGLE_DEGREES = new TunableNumber("END_EFFECTOR_ARM_PIVOT/maxAngleDegrees", 370.0);
         // Roller voltages for different operations
         public static final TunableNumber CORAL_INTAKE_VOLTAGE = new TunableNumber("END_EFFECTOR_ARM_ROLLER/coralIntakeVoltage", 12.0);

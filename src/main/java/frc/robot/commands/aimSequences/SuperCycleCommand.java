@@ -74,7 +74,7 @@ public class SuperCycleCommand extends SequentialCommandGroup {
                                         .runGoal(() -> DestinationSupplier
                                                 .getInstance()
                                                 .getPreState())
-                                        .until(superstructure::poseAtGoal))
+                                        .until(superstructure::atGoal))
                 )
         );
 
