@@ -15,7 +15,8 @@ import org.littletonrobotics.junction.Logger;
 import java.util.List;
 
 public class AimGoalSupplier {
-    private record TagCondition(int tagA, int tagB, char axis, int positiveResult, int negativeResult) {}
+    private record TagCondition(int tagA, int tagB, char axis, int positiveResult, int negativeResult) {
+    }
 
     /**
      * Calculates the optimal drive target position based on the robot's current position and goal position
@@ -82,6 +83,12 @@ public class AimGoalSupplier {
      */
     public static Pose2d getNearestTag(Pose2d robotPose) {
         return FieldConstants.officialAprilTagType.getLayout().getTagPose(getNearestTagID(robotPose)).get().toPose2d();
+    }
+
+    public static boolean isInReefDangerZone(Pose2d robotPose) {
+        return (robotPose.getX() - getNearestTag(robotPose).getX() < 0.4
+                || robotPose.getY() - getNearestTag(robotPose).getY() < 0.4) &&
+                Math.abs(robotPose.getRotation().minus(getNearestTag(robotPose).getRotation()).getDegrees()) < 45;
     }
 
     /**

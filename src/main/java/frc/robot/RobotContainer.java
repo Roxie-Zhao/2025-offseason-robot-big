@@ -412,7 +412,8 @@ public class RobotContainer {
                                                 .runGoal(() -> SuperstructureState.NET_SCORE_EJECT)
                                                 .until(() -> !superstructure.hasAlgae())
                                 )
-                );
+                )
+        ;
     }
 
     public Command getAutonomousCommand() {
