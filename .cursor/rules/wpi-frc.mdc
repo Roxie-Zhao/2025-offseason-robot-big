@@ -26,5 +26,13 @@ always refer to the above api for usages and implimentations when creating and d
     Most constants are recorded in RobotConstants.java
         Constants that need tuning are using TunableNumbers 
 
-when prompting to debug for the user, add system.out.println() for key outputs related to the issue so that you can then read from the terminal. Remove it after debugging is complete
+<making_code_changes>
+when writing a new feature,
+1. Always log the important outputs 
+2. Always add the numbers that may need changing by the user to RobotConstants.java as TunableNumbers
+</making_code_changes>
+
+<debugging>
+when asked by user to debug or user is reporting a problem, always add system.out.println() for debug messages.
+</debugging>
     
