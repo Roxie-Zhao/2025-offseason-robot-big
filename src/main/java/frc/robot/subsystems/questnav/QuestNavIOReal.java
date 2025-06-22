@@ -4,38 +4,28 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import frc.robot.RobotConstants;
 import frc.robot.utils.TunableNumber;
-
-// Import the QuestNav class from vendor dependency
-// import gg.questnav.QuestNav;
+import gg.questnav.questnav.QuestNav;
 
 public class QuestNavIOReal implements QuestNavIO {
-    // private final QuestNav questNav; // TODO: Uncomment when QuestNav vendor library is installed
-    
+    private final QuestNav questNav;
+
+
     // Transform from robot center to Quest headset
     private final TunableNumber robotToQuestX = new TunableNumber("QuestNav/RobotToQuestX", 0.0);
     private final TunableNumber robotToQuestY = new TunableNumber("QuestNav/RobotToQuestY", 0.0);
     private final TunableNumber robotToQuestRotDeg = new TunableNumber("QuestNav/RobotToQuestRotDeg", 0.0);
 
     public QuestNavIOReal() {
-        // questNav = new QuestNav(); // TODO: Uncomment when QuestNav vendor library is installed
-        System.out.println("QuestNavIOReal initialized - QuestNav vendor library not yet imported");
+        questNav = new QuestNav(); 
+        System.out.println("QuestNavIOReal initialized successfully");
     }
 
     @Override
     public void updateInputs(QuestNavIOInputs inputs) {
-        // TODO: Uncomment when QuestNav vendor library is available
-        // inputs.connected = questNav.isConnected();
-        // inputs.tracking = questNav.isTracking();
-        // inputs.pose = questNav.getPose();
-        // inputs.timestamp = questNav.getDataTimestamp();
-        
-        // Temporary default values
-        inputs.connected = false;
-        inputs.tracking = false;
-        inputs.pose = new Pose2d();
-        inputs.timestamp = 0.0;
-        
-        System.out.println("QuestNavIOReal: Waiting for QuestNav vendor library to be imported");
+        inputs.connected = questNav.isConnected();
+        inputs.tracking = questNav.isTracking();
+        inputs.pose = questNav.getPose();
+        inputs.timestamp = questNav.getDataTimestamp();
     }
 
     @Override
@@ -48,19 +38,14 @@ public class QuestNavIOReal implements QuestNavIO {
         );
         
         Pose2d questPose = robotPose.transformBy(robotToQuest);
-        
-        // TODO: Uncomment when QuestNav vendor library is available
-        // questNav.setPose(questPose);
+        questNav.setPose(questPose);
         
         System.out.println("QuestNavIOReal: setPose called with robot pose: " + robotPose + ", quest pose: " + questPose);
     }
 
     @Override
     public void commandPeriodic() {
-        // TODO: Uncomment when QuestNav vendor library is available
-        // questNav.commandPeriodic();
-        
+        questNav.commandPeriodic();
         // This is critical for QuestNav v2025-1.0.0+ to function properly
-        System.out.println("QuestNavIOReal: commandPeriodic() called - waiting for vendor library");
     }
 } 
