@@ -32,8 +32,6 @@ public class QuestNavIOReal implements QuestNavIO {
         
         Pose2d questPose = robotPose.transformBy(robotToQuest);
         questNav.setPose(questPose);
-        
-        System.out.println("QuestNavIOReal: setPose called with robot pose: " + robotPose + ", quest pose: " + questPose);
     }
 
     @Override

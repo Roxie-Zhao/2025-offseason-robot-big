@@ -69,10 +69,35 @@ public class QuestNavSubsystem extends SubsystemBase {
      * @param overrideEnabledCheck Whether to allow resetting while enabled
      */
     public void resetPose(Pose2d robotPose, boolean overrideEnabledCheck) {
-        if (!overrideEnabledCheck && DriverStation.isEnabled()) {
-            Logger.recordOutput("QuestNav/Warning", 
-                "resetPose() called while robot is enabled. Ignoring for safety.");
-            System.out.println("QuestNav: Cannot reset pose while robot is enabled!");
+        // Get current field pose from swerve drive for validation
+        Pose2d currentFieldPose = swerve.getLocalizer().getCoarseFieldPose(inputs.timestamp);
+        
+        // Calculate distance and angle differences
+        double distanceDifference = robotPose.getTranslation().getDistance(currentFieldPose.getTranslation());
+        double angleDifference = Math.abs(robotPose.getRotation().minus(currentFieldPose.getRotation()).getDegrees());
+        
+        // Normalize angle difference to [0, 180]
+        if (angleDifference > 180) {
+            angleDifference = 360 - angleDifference;
+        }
+        
+        // Check if the pose difference is within acceptable bounds
+        double maxDistance = RobotConstants.QuestNavConstants.MAX_RESET_DISTANCE_METERS.get();
+        double maxAngle = RobotConstants.QuestNavConstants.MAX_RESET_ANGLE_DEGREES.get();
+        
+        // Log validation information for debugging
+        
+        
+        if (distanceDifference > maxDistance) {
+            Logger.recordOutput("QuestNav/Status", 
+                String.format("Reset REJECTED - Distance too large: %.3fm > %.3fm", distanceDifference, maxDistance));
+            return;
+        }
+        
+        if (angleDifference > maxAngle) {
+          
+            Logger.recordOutput("QuestNav/Status", 
+                String.format("Reset REJECTED - Angle too large: %.1fdeg > %.1fdeg", angleDifference, maxAngle));
             return;
         }
 
@@ -81,9 +106,10 @@ public class QuestNavSubsystem extends SubsystemBase {
         
         io.setPose(questPose);
         
+        System.out.println("QuestNav: Reset ACCEPTED - Robot: " + robotPose + ", Quest: " + questPose);
         Logger.recordOutput("QuestNav/Status", 
-            String.format("Reset pose - Robot: %s, Quest: %s", robotPose, questPose));
-        System.out.println("QuestNav: Reset pose to " + robotPose);
+            String.format("Reset ACCEPTED - Robot: %s, Quest: %s", robotPose, questPose));
+
     }
 
     /**

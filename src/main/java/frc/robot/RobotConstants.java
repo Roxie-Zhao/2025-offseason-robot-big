@@ -502,5 +502,9 @@ public final class RobotConstants {
         
         // Enable/disable vision updates
         public static final TunableNumber ENABLE_VISION_UPDATES = new TunableNumber("QuestNav/EnableVisionUpdates", 1.0);
+        
+        // Pose reset validation thresholds
+        public static final TunableNumber MAX_RESET_DISTANCE_METERS = new TunableNumber("QuestNav/MaxResetDistanceMeters", 0.01);
+        public static final TunableNumber MAX_RESET_ANGLE_DEGREES = new TunableNumber("QuestNav/MaxResetAngleDegrees", 1);
     }
 }
