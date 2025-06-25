@@ -257,6 +257,7 @@ public class RobotContainer {
     // }
 
 
+
     private void configureDriverBindings() {
         //TODO: consider enabling the auto scoring button whilst the superstructure is intaking
         swerve.setDefaultCommand(Commands.runOnce(() -> swerve.drive(
@@ -391,6 +392,9 @@ public class RobotContainer {
                         createScoringCommand(true, SuperstructureState.L2)
                 );
 
+                driverController.back().whileTrue(
+                        superstructure.runGoal(SuperstructureState.CORAL_STATION_INTAKE)
+                    );
                 //testing delete
         driverController.povUp().whileTrue(
             Commands.runOnce(() -> {
@@ -400,6 +404,7 @@ public class RobotContainer {
                 new ReefAimCommand(() -> false, driverController, indicatorSubsystem)
             ).alongWith(superstructure.runGoal(SuperstructureState.P2))
         );
+        
         
         
         
@@ -452,13 +457,6 @@ public class RobotContainer {
                                 )
                 );
 
-        testerController
-                .x()
-                .whileTrue(
-                        superstructure
-                                .runGoal(() -> SuperstructureState.P1)
-                                .until(superstructure::hasAlgae)
-                );
 
         testerController
                 .leftBumper()
@@ -471,8 +469,10 @@ public class RobotContainer {
                                                 .runGoal(() -> SuperstructureState.NET_SCORE_EJECT)
                                                 .until(() -> !superstructure.hasAlgae())
                                 )
-                )
-        ;
+                );
+        testerController.a().whileTrue(
+            superstructure.runGoal(SuperstructureState.CORAL_STATION_INTAKE)
+        );
     }
 
     public Command getAutonomousCommand() {

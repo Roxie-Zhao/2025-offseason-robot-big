@@ -23,22 +23,23 @@ public record SuperstructurePose(DoubleSupplier elevatorHeight, DoubleSupplier e
     @Getter
     @RequiredArgsConstructor
     enum Preset {
-        CORAL_STOW("Coral Stow",        0.6,   135,   40),
-        ALGAE_STOW("Algae Stow",        0.6,    0,   40),
-        START("Start",                  0.5,     0,    40),
-        L1_INTAKE_SIDE("L1 Intake Side", 0.16,   0,   40),
-        L1_SHOOT_SIDE("L1 Shoot Side",  0.3,   200,   40),
-        L2("L2",                        0.14,  190,   40),
-        L3("L3",                        0.57, 190,   40),
-        L4("L4",                        1.4,   220,   40),
-        NET_SCORE("Net Score",          1.4,   230,   40),
-        P1("P1",                        0.55,    0,   40),
-        P2("P2",                        0.88,    0,   40),
-        CORAL_GROUND_INTAKE("Coral Ground Intake", 0.15, 0, 108),
-        CORAL_INDEXED_INTAKE("Coral Indexed Intake", 0.6, 0, 109.5),
-        IDLE("Idle",                    0.16,    0,   40),
-        PROCESSOR("Processor", 0.16, 0, 40),
-        AVOID("Avoid",                  0.6,     0,   40);
+        CORAL_STOW("Coral Stow",        0.57,   135,   60),
+        ALGAE_STOW("Algae Stow",        0.6,    0,   60),
+        START("Start",                  0.5,     0,    60),
+        L1_INTAKE_SIDE("L1 Intake Side", 0.16,   0,   60),
+        L1_SHOOT_SIDE("L1 Shoot Side",  0.3,   200,   60),
+        L2("L2",                        0.14,  190,   60),
+        L3("L3",                        0.57, 190,   60),
+        L4("L4",                        1.4,   220,   60),
+        NET_SCORE("Net Score",          1.4,   -120,   60),
+        P1("P1",                        0.55,    0,   60),
+        P2("P2",                        0.88,    0,   60),
+        CORAL_GROUND_INTAKE("Coral Ground Intake", 0.15, 0, 150),
+        CORAL_INDEXED_INTAKE("Coral Indexed Intake", 0.57, 0, 150),
+        CORAL_STATION_INTAKE("Coral Station Intake", 0.3, 160, 60),
+        IDLE("Idle",                    0.16,    0,   60),
+        PROCESSOR("Processor", 0.16, 0, 60),
+        AVOID("Avoid",                  0.6,     0,   60);
 
 
         

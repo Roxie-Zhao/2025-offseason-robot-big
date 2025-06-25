@@ -41,19 +41,18 @@ public class IntakePivotIOReal implements IntakePivotIO {
     public IntakePivotIOReal() {
         var config = new TalonFXConfiguration();
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-        config.CurrentLimits.SupplyCurrentLimit = 40.0;
+        config.CurrentLimits.SupplyCurrentLimit = 80;
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 40.0;
+        config.CurrentLimits.StatorCurrentLimit = 80;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
 
         // Initialize CANcoder
         CANcoderConfiguration CANconfig = new CANcoderConfiguration();
         CANconfig.MagnetSensor.MagnetOffset = INTAKE_PIVOT_ENCODER_OFFSET;
-        CANconfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+        CANconfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
         canCoder.getConfigurator().apply(CANconfig);
-        // Try the fused CANcoder option, if it doesn't work, use the remote
         config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
         config.Feedback.FeedbackRemoteSensorID = INTAKE_PIVOT_ENCODER_ID;
         config.Feedback.RotorToSensorRatio = INTAKE_PIVOT_ROTOR_ENCODER_RATIO;

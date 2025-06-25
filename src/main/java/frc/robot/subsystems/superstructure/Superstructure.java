@@ -140,6 +140,7 @@ public class Superstructure extends SubsystemBase {
                     }
                     
                     return SuperstructureState.IDLE;
+             
                 })
         );
     }
@@ -165,7 +166,8 @@ public class Superstructure extends SubsystemBase {
             Set.of(
                     SuperstructureState.L1_SHOOT_SIDE,
                     SuperstructureState.L2,
-                    SuperstructureState.P1
+                    SuperstructureState.P1,
+                    SuperstructureState.CORAL_STATION_INTAKE
             );
 
 
@@ -481,7 +483,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public boolean poseAtGoal() {
-        return elevator.isAtGoal() && endEffectorArm.isAtGoal() && intake.isAtGoal();
+        return elevator.isAtGoal() && endEffectorArm.isAtGoal() && true /*intake.isAtGoal()*/;
     }
 
     private Command runSuperstructureRollers(SuperstructureState state) {
@@ -505,14 +507,23 @@ public class Superstructure extends SubsystemBase {
         }
         // Special handling for coral indexing while holding algae - only move intake
         if (to == SuperstructureState.CORAL_INDEXED_INTAKE) {
-            return runIntake(to.getValue().getPose().intakeAngle())
-                    .andThen(
-                            Commands.waitUntil(intake::isAtGoal),
-                            runSuperstructureRollers(to)
-                    );
+            // return runIntake(to.getValue().getPose().intakeAngle())
+            //         .andThen(
+            //                 Commands.waitUntil(intake::isAtGoal),
+            //                 runSuperstructureRollers(to)
+            //         );
+            return runSuperstructureRollers(to);
         }
         // is safe to flip inorder to produce a smoother elevator motion
         // TODO: Test this
+        if (from == SuperstructureState.P1 || from == SuperstructureState.P2){
+            return runEndEffectorArm(to.getValue().getPose().endEffectorAngle())
+                        .andThen(Commands.waitUntil(endEffectorArm::isAtGoal),
+                        runElevator(to.getValue().getPose().elevatorHeight()),
+                        runIntake(to.getValue().getPose().intakeAngle()),
+                        Commands.waitUntil(this::poseAtGoal));
+                        
+        }
         if (to == SuperstructureState.AVOID) {
             if (statesBelowFlip.contains(from)) {
                 return runElevator(to.getValue().getPose().elevatorHeight())

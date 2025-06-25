@@ -55,7 +55,7 @@ public class Robot extends LoggedRobot {
         // Remember to adjust fps & resolution in elastic (5fps, 300*200)
         // If network is bad or rio is in high cpu usage, disable it
         if (DriverCamera) {
-            CameraServer.startAutomaticCapture("Driver Camera", "/dev/video0");
+        //    CameraServer.startAutomaticCapture("Driver Camera", "/dev/video0");
         }
         robotContainer = new RobotContainer();
     }
