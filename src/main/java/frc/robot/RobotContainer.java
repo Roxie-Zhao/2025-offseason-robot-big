@@ -321,32 +321,13 @@ public class RobotContainer {
         //         );
 
 
-
-        //with indexed intake
+        // Coral intake - chooses between ground and indexed intake based on conditions
         driverController
                 .a()
                 .toggleOnTrue(
                         superstructure
-                                .runGoal(() -> {
-                                    if (superstructure.hasAlgae()) {
-                                        return SuperstructureState.CORAL_INDEXED_INTAKE;
-                                    } else if (!AimGoalSupplier.isInHexagonalReefDangerZone(
-                                            swerve.getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()))) {
-                                        return SuperstructureState.CORAL_GROUND_INTAKE;
-                                    } else {
-                                        return SuperstructureState.CORAL_INDEXED_INTAKE;
-                                    }
-                                })
-                                .until(() -> {
-                                    if (superstructure.hasAlgae()) {
-                                        return superstructure.hasAlgae() && superstructure.indexedCoral();
-                                    } else if (!AimGoalSupplier.isInHexagonalReefDangerZone(
-                                            swerve.getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()))) {
-                                        return superstructure.hasCoral();
-                                    } else {
-                                        return superstructure.indexedCoral();
-                                    }
-                                })
+                                .runGoal(this::determineIntakeState)
+                                .until(this::isIntakeComplete)
                 );
 
         driverController.b().whileTrue(superstructure.runGoal(() -> SuperstructureState.CORAL_OUTTAKE));
@@ -392,39 +373,13 @@ public class RobotContainer {
                         createScoringCommand(true, SuperstructureState.L2)
                 );
 
-                driverController.back().whileTrue(
-                        superstructure.runGoal(SuperstructureState.CORAL_STATION_INTAKE)
-                    );
-                //testing delete
-        driverController.povUp().whileTrue(
-            Commands.runOnce(() -> {
-                destinationSupplier.setCurrentGamePiece(GamePiece.ALGAE_INTAKING);
-            })
-            .andThen(
-                new ReefAimCommand(() -> false, driverController, indicatorSubsystem)
-            ).alongWith(superstructure.runGoal(SuperstructureState.P2))
-        );
-        
-        
-        
-        
+        //TODO: Delete this as soon as we have intake
+        driverController.back().whileTrue(
+                superstructure.runGoal(SuperstructureState.CORAL_STATION_INTAKE)
+         );        
     }
 
-    /**
-     * Helper method to create a scoring command sequence for a given branch and state
-     * @param isRightBranch true for right branch, false for left branch
-     * @param state the superstructure state to target
-     * 
-     * 
-     * @return the command sequence for scoring
-     */
-    private Command createScoringCommand(boolean isRightBranch, SuperstructureState state) {
-        return Commands.sequence(
-                Commands.runOnce(() -> destinationSupplier.updateBranch(isRightBranch)),
-                Commands.runOnce(() -> destinationSupplier.setStateSetPoint(state)),
-                new SuperCycleCommand(superstructure, indicatorSubsystem, driverController, () -> false)
-        ).onlyIf(() -> superstructure.hasCoral());
-    }
+
 
     private void configureStreamDeckBindings() {
         streamDeckController
@@ -448,11 +403,11 @@ public class RobotContainer {
                 .b()
                 .whileTrue(
                         superstructure
-                                .runGoal(() -> SuperstructureState.L4)
+                                .runGoal(() -> SuperstructureState.L3)
                                 .until(testerController.x())
                                 .andThen(
                                         superstructure
-                                                .runGoal(() -> SuperstructureState.L4_EJECT)
+                                                .runGoal(() -> SuperstructureState.L3_EJECT)
                                                 .until(() -> !superstructure.hasCoral())
                                 )
                 );
@@ -470,8 +425,11 @@ public class RobotContainer {
                                                 .until(() -> !superstructure.hasAlgae())
                                 )
                 );
+                
         testerController.a().whileTrue(
-            superstructure.runGoal(SuperstructureState.CORAL_STATION_INTAKE)
+            superstructure
+                .runGoal(SuperstructureState.CORAL_GROUND_INTAKE)
+                .until(() -> superstructure.hasCoral())
         );
     }
 
@@ -486,6 +444,70 @@ public class RobotContainer {
 
     public void setMegaTag2(boolean setMegaTag2) {
         limelightSubsystem.setMegaTag2(setMegaTag2);
+    }
+
+        /**
+     * Helper method to create a scoring command sequence for a given branch and state
+     * @param isRightBranch true for right branch, false for left branch
+     * @param state the superstructure state to target
+     * 
+     * 
+     * @return the command sequence for scoring
+     */
+    private Command createScoringCommand(boolean isRightBranch, SuperstructureState state) {
+        return Commands.sequence(
+                Commands.runOnce(() -> destinationSupplier.updateBranch(isRightBranch)),
+                Commands.runOnce(() -> destinationSupplier.setStateSetPoint(state)),
+                new SuperCycleCommand(superstructure, indicatorSubsystem, driverController, () -> false)
+        ).onlyIf(() -> superstructure.hasCoral());
+    }
+
+    /**
+     * Helper method to check if robot is in the hexagonal reef danger zone
+     * @return true if robot is in danger zone
+     */
+    private boolean isInReefDangerZone() {
+        return AimGoalSupplier.isInHexagonalReefDangerZone(
+                swerve.getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()));
+    }
+
+    /**
+     * Determines the appropriate intake state based on current conditions
+     * @return SuperstructureState for intake operation
+     */
+    private SuperstructureState determineIntakeState() {
+        boolean hasAlgae = superstructure.hasAlgae();
+        boolean inDangerZone = isInReefDangerZone();
+        
+        System.out.println("Intake State Decision - HasAlgae: " + hasAlgae + ", InDangerZone: " + inDangerZone);
+        
+        // If we have algae OR we're in danger zone, use indexed intake
+        // Otherwise, use ground intake for safety
+        if (hasAlgae || inDangerZone) {
+            return SuperstructureState.CORAL_INDEXED_INTAKE;
+        } else {
+            return SuperstructureState.CORAL_GROUND_INTAKE;
+        }
+    }
+
+    /**
+     * Determines if the intake operation is complete based on current conditions
+     * @return true if intake is complete
+     */
+    private boolean isIntakeComplete() {
+        boolean hasAlgae = superstructure.hasAlgae();
+        boolean inDangerZone = isInReefDangerZone();
+        
+        if (hasAlgae) {
+            // When we have algae, we need both algae AND indexed coral
+            return superstructure.hasAlgae() && superstructure.indexedCoral();
+        } else if (!inDangerZone) {
+            // When not in danger zone, we just need coral
+            return superstructure.hasCoral();
+        } else {
+            // When in danger zone (without algae), we need indexed coral
+            return superstructure.indexedCoral();
+        }
     }
 
 }
