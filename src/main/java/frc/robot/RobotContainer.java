@@ -458,7 +458,9 @@ public class RobotContainer {
         return Commands.sequence(
                 Commands.runOnce(() -> destinationSupplier.updateBranch(isRightBranch)),
                 Commands.runOnce(() -> destinationSupplier.setStateSetPoint(state)),
-                new SuperCycleCommand(superstructure, indicatorSubsystem, driverController, () -> false)
+                new SuperCycleCommand(superstructure, indicatorSubsystem, driverController, () -> false),
+                // After SuperCycleCommand completes, continue to algae prestate until out of danger zone
+                createDangerZoneExitCommand()
         ).onlyIf(() -> superstructure.hasCoral());
     }
 
@@ -509,5 +511,23 @@ public class RobotContainer {
             return superstructure.indexedCoral();
         }
     }
+
+    /**
+     * Creates a command to move the superstructure to algae prestate until robot exits danger zone
+     * This is used after SuperCycleCommand completes to ensure safe exit from reef area
+     * @return Command that continues to algae prestate until out of danger zone
+     */
+    private Command createDangerZoneExitCommand() {
+        return Commands.sequence(
+                // Set game piece to algae intaking to get correct prestate
+                Commands.runOnce(() -> destinationSupplier.setCurrentGamePiece(DestinationSupplier.GamePiece.ALGAE_INTAKING)),
+                // Continue running to algae prestate until out of danger zone
+                superstructure
+                        .runGoal(() -> destinationSupplier.getPreState())
+                        .until(() ->!isInReefDangerZone())
+        ).onlyIf(this::isInReefDangerZone); // Only run if actually in danger zone
+    }
+
+
 
 }

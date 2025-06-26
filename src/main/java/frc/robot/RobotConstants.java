@@ -283,7 +283,7 @@ public final class RobotConstants {
         public static final TunableNumber OMEGA_TOLERANCE_DEGREES = new TunableNumber("AIM/OMEGA_TOLERANCE_DEGREES", 1);
         public static final Measure<LinearVelocityUnit> MAX_AIMING_SPEED = MetersPerSecond.of(3.5);
         public static final Measure<LinearAccelerationUnit> MAX_AIMING_ACCELERATION = MetersPerSecondPerSecond.of(10);
-        public static final TunableNumber Edge_Case_Max_Delta = new TunableNumber("AIM/MAX DELTA", 0.51);
+        public static final TunableNumber Edge_Case_Max_Delta = new TunableNumber("AIM/MAX DELTA", 0.4);
         public static final TunableNumber ROBOT_TO_ALGAE_METERS = new TunableNumber("AIM/ROBOT_TO_ALGAE_METERS", 0.489);
         public static final TunableNumber ALGAE_TO_TAG_METERS = new TunableNumber("AIM/ALGAE_TO_TAG_METERS", 0);
         public static final TunableNumber HEXAGON_DANGER_DEGREES = new TunableNumber("AIM/HEXAGON_DANGER_DEGREES", 45);
@@ -324,7 +324,7 @@ public final class RobotConstants {
         public static final TunableNumber INTAKE_PIVOT_JERK = new TunableNumber("INTAKE_PIVOT/jerk", 0);
         public static final TunableNumber INTAKE_PIVOT_TOLERANCE = new TunableNumber("INTAKE_PIVIOT/tolerance", 3.5);
         //TODO: tune pid and decrease tolerance
-        public static final double INTAKE_PIVOT_ENCODER_OFFSET = -0.09;
+        public static final double INTAKE_PIVOT_ENCODER_OFFSET = 0.456982421875;
         //Motion constants for intake roller
         public static final TunableNumber INTAKE_VOLTAGE = new TunableNumber("INTAKE_ROLLER/intakeVoltage", 15.0);
         public static final TunableNumber INDEX_ROLLER_VOLTAGE = new TunableNumber("INTAKE_ROLLER/indexRollerVoltage", 15.0);

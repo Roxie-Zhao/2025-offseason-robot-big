@@ -94,7 +94,6 @@ public class SuperCycleCommand extends SequentialCommandGroup {
                 );
     }
 
-
     private boolean isSafeToRaise() {
         return  DestinationSupplier.isSafeToRaise(
                     Swerve.getInstance().getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()),

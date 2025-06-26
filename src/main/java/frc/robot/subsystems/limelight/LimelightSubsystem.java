@@ -12,7 +12,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.utils.LoggedTracer;
 import lombok.Getter;
 
-import org.frcteam6941.localization.Localizer;
+import org.frcteam6941.swerve.localization.Localizer;
 import org.littletonrobotics.AllianceFlipUtil;
 import org.littletonrobotics.junction.Logger;
 
