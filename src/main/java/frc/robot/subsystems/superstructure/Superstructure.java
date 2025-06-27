@@ -520,6 +520,13 @@ public class Superstructure extends SubsystemBase {
                     .andThen(Commands.waitUntil(this::poseAtGoal));
         
         }
+        if (to == SuperstructureState.CORAL_STATION_INTAKE){
+            return runEndEffectorArm(to.getValue().getPose().endEffectorAngle())
+                    .andThen(Commands.waitUntil(endEffectorArm::isAtGoal),
+                                runSuperstructurePose(to.getValue().getPose()),
+                                Commands.waitUntil(this::poseAtGoal),
+                                runSuperstructureRollers(to));
+        }
         // is safe to flip inorder to produce a smoother elevator motion
         if (to == SuperstructureState.AVOID) {
             if (statesBelowFlip.contains(from)) {
@@ -534,6 +541,7 @@ public class Superstructure extends SubsystemBase {
                 return runSuperstructurePose(to.getValue().getPose())
                         .andThen(Commands.waitUntil(endEffectorArm::isAtGoal));
             } else {
+                //TODO:check this 
                 return runSuperstructurePose(to.getValue().getPose())
                         .andThen(Commands.waitUntil(elevator::isSafeToFlip));
             }

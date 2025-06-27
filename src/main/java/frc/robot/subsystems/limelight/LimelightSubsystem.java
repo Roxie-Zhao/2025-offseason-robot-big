@@ -166,7 +166,6 @@ public class LimelightSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         limelightIOs.forEach((name, io) -> {
-            // TODO: figure out why 180 - abs()
             io.setRobotOrientation(
                     swerveLocalizer.getLatestPose().getRotation().getDegrees()
                     , 0, 0, 0, 0, 0);

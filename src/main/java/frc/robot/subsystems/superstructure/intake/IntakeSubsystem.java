@@ -73,7 +73,6 @@ public class IntakeSubsystem {
         atGoal = isNearAngle(wantedAngle, IntakeConstants.INTAKE_PIVOT_TOLERANCE.get());
         intakePivotIO.setPivotAngle(wantedAngle);
 
-        //TODO: add Debouncer or filter to prevent false positives
         if (RobotBase.isReal()) {
             indexRollerHasCoral = BBInputs.isBeambreakOn;
             SmartDashboard.putBoolean("GamePiece/IndexRollerHasCoral", indexRollerHasCoral);
