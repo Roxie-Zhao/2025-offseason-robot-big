@@ -48,7 +48,7 @@ public enum SuperstructureState {
         () -> IntakeConstants.INTAKE_VOLTAGE.get(), 
         () -> IntakeConstants.INDEX_ROLLER_VOLTAGE.get(),
         () -> EndEffectorArmConstants.CORAL_INTAKE_VOLTAGE.get())),
-    CORAL_OUTTAKE(createState(Preset.CORAL_GROUND_INTAKE, ()-> IntakeConstants.OUTTAKE_VOLTAGE.get(),() -> IntakeConstants.INDEX_ROLLER_VOLTAGE.get(),
+    CORAL_OUTTAKE(createState(Preset.CORAL_GROUND_INTAKE, ()-> IntakeConstants.OUTTAKE_VOLTAGE.get(),() -> -IntakeConstants.INDEX_ROLLER_VOLTAGE.get(),
     () -> EndEffectorArmConstants.CORAL_OUTTAKE_VOLTAGE.get())),
     CORAL_INDEXED_INTAKE(createState(Preset.CORAL_INDEXED_INTAKE,
         () -> IntakeConstants.INTAKE_VOLTAGE.get(), 

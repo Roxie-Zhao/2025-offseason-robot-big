@@ -464,9 +464,9 @@ public class RobotContainer {
         return Commands.sequence(
                 Commands.runOnce(() -> destinationSupplier.updateBranch(isRightBranch)),
                 Commands.runOnce(() -> destinationSupplier.setStateSetPoint(state)),
-                new SuperCycleCommand(superstructure, indicatorSubsystem, driverController, () -> false),
+                new SuperCycleCommand(superstructure, indicatorSubsystem, driverController, () -> false)
                 // After SuperCycleCommand completes, continue to algae prestate until out of danger zone
-                createDangerZoneExitCommand()
+                //createDangerZoneExitCommand()
         ).onlyIf(() -> superstructure.hasCoral());
     }
 

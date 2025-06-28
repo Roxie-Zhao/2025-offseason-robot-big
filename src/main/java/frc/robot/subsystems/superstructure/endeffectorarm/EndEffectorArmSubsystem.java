@@ -38,7 +38,8 @@ public class EndEffectorArmSubsystem {
     // Roller motor control
     private final RollerIO rollerIO;
 
-    @Getter@AutoLogOutput(key = "EndEffectorArm/setPoint")
+    @Getter
+    @AutoLogOutput(key = "EndEffectorArm/setPoint")
     private double wantedAngle = 0.0;
     @Getter@AutoLogOutput(key = "EndEffectorArm/atGoal")
     private boolean atGoal = false;
