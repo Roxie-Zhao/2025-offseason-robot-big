@@ -132,7 +132,7 @@ public class RobotContainer {
                         ),
                         new BeambreakIOReal(RobotConstants.BeamBreakConstants.INTAKE_BEAMBREAK_ID)
                 );
-                climberSubsystem = new ClimberSubsystem(new ClimberIOReal());
+                climberSubsystem = new ClimberSubsystem(new ClimberIOSim());
                 endEffectorArmSubsystem = new EndEffectorArmSubsystem(
                         new EndEffectorArmPivotIOReal(),
                         new RollerIOReal(

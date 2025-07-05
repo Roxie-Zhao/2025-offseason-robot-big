@@ -312,7 +312,7 @@ public final class RobotConstants {
         //Constants for intake roller
         public static final int STATOR_CURRENT_LIMIT_AMPS = 80;
         public static final int SUPPLY_CURRENT_LIMIT_AMPS = 80;
-        public static final boolean IS_BRAKE = true;
+        public static final boolean IS_BRAKE = false;
         public static final boolean IS_INTAKER_INVERT = true;
         public static final boolean IS_INDEXER_INVERT = true;
         public static final boolean INDEX_FOLLOWER_INVERT = true; // Set based on your mechanical setup
@@ -327,7 +327,7 @@ public final class RobotConstants {
         public static final TunableNumber INTAKE_PIVOT_JERK = new TunableNumber("INTAKE_PIVOT/jerk", 0);
         public static final TunableNumber INTAKE_PIVOT_TOLERANCE = new TunableNumber("INTAKE_PIVIOT/tolerance", 3.5);
 
-        public static final double INTAKE_PIVOT_ENCODER_OFFSET = 0.17822265625 - 0.25;
+        public static final double INTAKE_PIVOT_ENCODER_OFFSET = 0.0263671875 - 0.25;
         //Motion constants for intake roller
         public static final TunableNumber INTAKE_VOLTAGE = new TunableNumber("INTAKE_ROLLER/intakeVoltage", 15.0);
         public static final TunableNumber INDEX_ROLLER_VOLTAGE = new TunableNumber("INTAKE_ROLLER/indexRollerVoltage", 15.0);
