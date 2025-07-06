@@ -392,10 +392,10 @@ public final class RobotConstants {
     //Constants for intake roller
     public static final int STATOR_CURRENT_LIMIT_AMPS = 80;
     public static final int SUPPLY_CURRENT_LIMIT_AMPS = 80;
-    public static final boolean IS_BRAKE = true;
+    public static final boolean IS_BRAKE = false;
     public static final boolean IS_INTAKER_INVERT = true;
     public static final boolean IS_INDEXER_INVERT = true;
-    public static final boolean INDEX_FOLLOWER_INVERT = true; // Set based on your mechanical setup
+    public static final boolean INDEX_FOLLOWER_INVERT = true; 
     public static final double REDUCTION = 1;
     public static final double moi = 0;//inertia for simulation
     public static final double ROLLER_RATIO = 1;
@@ -515,12 +515,35 @@ public final class RobotConstants {
     public static final TunableNumber ELEVATOR_KG = new TunableNumber("ELEVATOR PID/kg", 0.32);//0.3
   }
 
-  public static class LimelightConstants {
-    public static final String LIMELIGHT_LEFT = "limelight-leftf";
-    public static final String LIMELIGHT_RIGHT = "limelight-rightf";
-    public static final double AREA_THRESHOLD = 0.1;
-    public static final TunableNumber OCULUS_RESET_AMBIGUITY_THRESHOLD = new TunableNumber("LIMELIGHT/oculusResetAmbiguityThreshold", 0.15);
-  }
+    public static class LimelightConstants {
+        public static final String LIMELIGHT_LEFT = "limelight-leftf";
+        public static final String LIMELIGHT_RIGHT = "limelight-rightf";
+        public static final double AREA_THRESHOLD = 0.1;
+        public static final TunableNumber OCULUS_RESET_AMBIGUITY_THRESHOLD = new TunableNumber("LIMELIGHT/oculusResetAmbiguityThreshold", 0.15);
+    }
+
+    public static class PhotonvisionConstants {
+        public static final String[] PV_CAMERA_NAMES = {"pv-cam1"};
+        public static final boolean[] SNAPSHOT_ENABLED = {true};
+        public static final int SNAPSHOT_PERIOD = 5; //seconds
+        
+        // Camera physical configuration
+        public static final TunableNumber CAMERA_HEIGHT_METERS = new TunableNumber("PhotonVision/cameraHeightMeters", 0.25);
+        public static final TunableNumber CAMERA_PITCH_DEGREES = new TunableNumber("PhotonVision/cameraPitchDegrees", -15.0);
+        
+        // Camera to robot transform (camera position relative to robot center)
+        public static final TunableNumber CAMERA_TO_ROBOT_X = new TunableNumber("PhotonVision/cameraToRobotX", 0.0);
+        public static final TunableNumber CAMERA_TO_ROBOT_Y = new TunableNumber("PhotonVision/cameraToRobotY", 0.0);
+        public static final TunableNumber CAMERA_TO_ROBOT_ROTATION_DEGREES = new TunableNumber("PhotonVision/cameraToRobotRotationDegrees", 0.0);
+        
+        // Camera resolution (for pixel coordinate processing)
+        public static final TunableNumber CAMERA_RESOLUTION_X = new TunableNumber("PhotonVision/cameraResolutionX", 640);
+        public static final TunableNumber CAMERA_RESOLUTION_Y = new TunableNumber("PhotonVision/cameraResolutionY", 480);
+        
+        // Distance estimation parameters (trigonometry-based only)
+        public static final TunableNumber DISTANCE_SCALE_FACTOR = new TunableNumber("PhotonVision/distanceScaleFactor", 1.0);
+        public static final TunableNumber GROUND_HEIGHT_METERS = new TunableNumber("PhotonVision/groundHeightMeters", 0.0);
+    }
 
   /**
    * Constants related to the EndEffectorArm subsystem.
