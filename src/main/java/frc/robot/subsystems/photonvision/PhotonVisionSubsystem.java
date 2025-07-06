@@ -4,10 +4,13 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.RobotConstants;
+import frc.robot.RobotStateRecorder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,15 +59,29 @@ public class PhotonVisionSubsystem extends SubsystemBase {
         final int CAMERA_RESOLUTION_X = (int) RobotConstants.PhotonvisionConstants.CAMERA_RESOLUTION_X.get();
         final int CAMERA_RESOLUTION_Y = (int) RobotConstants.PhotonvisionConstants.CAMERA_RESOLUTION_Y.get();
         
+        // Get robot's current pose in world coordinates
+        Pose2d robotWorldPose2d = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
+        Pose3d robotWorldPose3d = new Pose3d(robotWorldPose2d.getX(), robotWorldPose2d.getY(), 0.0, 
+                                              new Rotation3d(0, 0, robotWorldPose2d.getRotation().getRadians()));
+        
         List<RawDetection> allDetections = getAllRawDetections();
         
         for (RawDetection detection : allDetections) {
-            // Basic 3D projection using trigonometry
-            Pose3d pose3d = projectTargetTo3D(detection, CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y);
+            // Get robot-relative 3D pose
+            Pose3d robotRelativePose = projectTargetTo3D(detection, CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y);
             
-            // Log the 3D pose
+            // Transform to world coordinates
+            Pose3d worldPose = robotWorldPose3d.transformBy(new Transform3d(robotRelativePose.getTranslation(), robotRelativePose.getRotation()));
+            
+            // Log both robot-relative and world poses
             String basePath = "PhotonVision/Camera" + detection.cameraId + "/Target" + getTargetIndex(detection);
-            Logger.recordOutput(basePath + "/Pose3D", pose3d);
+            Logger.recordOutput(basePath + "/RobotRelativePose3D", robotRelativePose);
+            Logger.recordOutput(basePath + "/WorldPose3D", worldPose);
+            
+            // Log world pose components separately for easier analysis
+            Logger.recordOutput(basePath + "/WorldX", worldPose.getX());
+            Logger.recordOutput(basePath + "/WorldY", worldPose.getY());
+            Logger.recordOutput(basePath + "/WorldZ", worldPose.getZ());
         }
     }
     
@@ -227,12 +244,12 @@ public class PhotonVisionSubsystem extends SubsystemBase {
     }
 
     /**
-     * Projects a 2D detection to 3D pose relative to the camera
+     * Projects a 2D detection to 3D pose relative to the robot center
      * Uses raw detection data including pixel coordinates, pitch, yaw, skew, and area
      * @param detection The raw detection data
      * @param cameraResolutionX Camera resolution width in pixels
      * @param cameraResolutionY Camera resolution height in pixels
-     * @return Estimated 3D pose of the target relative to the camera
+     * @return Estimated 3D pose of the target relative to the robot center
      */
     public Pose3d projectTargetTo3D(RawDetection detection, int cameraResolutionX, int cameraResolutionY) {
         // Get camera constants from RobotConstants
@@ -261,33 +278,60 @@ public class PhotonVisionSubsystem extends SubsystemBase {
             distance *= distanceScaleFactor;
         }
         
-        // Calculate 3D position using spherical coordinates
-        double x = distance * Math.cos(pitchRadians) * Math.cos(yawRadians);
-        double y = distance * Math.cos(pitchRadians) * Math.sin(yawRadians);
-        double z = distance * Math.sin(pitchRadians);
+        // Calculate 3D position - objects are always on the ground
+        // Use horizontal distance projection for x and y
+        double x = distance * Math.cos(yawRadians);
+        double y = distance * Math.sin(yawRadians);
+        // Z represents height relative to camera - since objects are on ground, use negative camera height
+        double z = -(cameraHeightMeters - groundHeight);
         
-        // Create translation
-        Translation3d translation = new Translation3d(x, y, z);
+        // Create camera-relative pose
+        Translation3d cameraRelativeTranslation = new Translation3d(x, y, z);
+        Rotation3d cameraRelativeRotation = new Rotation3d(0, 0, 0);
+        Pose3d cameraRelativePose = new Pose3d(cameraRelativeTranslation, cameraRelativeRotation);
         
-        // Create rotation - use the yaw and pitch of the target, and incorporate skew
-        // Note: This is a simplified rotation model
-        Rotation3d rotation = new Rotation3d(0, pitchRadians, yawRadians);
+        // Transform from camera coordinates to robot coordinates
+        Pose3d robotRelativePose = transformCameraToRobot(cameraRelativePose);
         
         // Log the projection calculation for debugging
         Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/Distance", distance);
         Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/HeightDifference", heightDifference);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/X", x);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/Y", y);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/Z", z);
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/CameraRelativeX", x);
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/CameraRelativeY", y);
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/CameraRelativeZ", z);
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/RobotRelativeX", robotRelativePose.getX());
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/RobotRelativeY", robotRelativePose.getY());
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/RobotRelativeZ", robotRelativePose.getZ());
         
-        return new Pose3d(translation, rotation);
+        return robotRelativePose;
     }
     
     /**
-     * Projects all detected targets to 3D poses relative to their respective cameras
+     * Transforms a pose from camera coordinates to robot coordinates
+     * @param cameraRelativePose The pose relative to the camera
+     * @return The pose relative to the robot center
+     */
+    private Pose3d transformCameraToRobot(Pose3d cameraRelativePose) {
+        // Get camera position relative to robot center from constants
+        double cameraToRobotX = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_X.get();
+        double cameraToRobotY = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_Y.get();
+        double cameraToRobotZ = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_Z.get();
+        double cameraToRobotRotationDegrees = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_ROTATION_DEGREES.get();
+        
+        // Create the camera-to-robot transform
+        Translation3d cameraToRobotTranslation = new Translation3d(cameraToRobotX, cameraToRobotY, cameraToRobotZ);
+        Rotation3d cameraToRobotRotation = new Rotation3d(0, 0, Units.degreesToRadians(cameraToRobotRotationDegrees));
+        Transform3d cameraToRobotTransform = new Transform3d(cameraToRobotTranslation, cameraToRobotRotation);
+        
+        // Apply the transform to get robot-relative pose
+        return cameraRelativePose.transformBy(cameraToRobotTransform);
+    }
+    
+    /**
+     * Projects all detected targets to 3D poses relative to the robot center
      * @param cameraResolutionX Camera resolution width in pixels
      * @param cameraResolutionY Camera resolution height in pixels
-     * @return List of 3D poses for all detected targets
+     * @return List of 3D poses for all detected targets relative to robot center
      */
     public List<Pose3d> projectAllTargetsTo3D(int cameraResolutionX, int cameraResolutionY) {
         List<Pose3d> poses = new ArrayList<>();

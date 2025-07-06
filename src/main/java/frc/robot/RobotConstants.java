@@ -528,12 +528,13 @@ public final class RobotConstants {
         public static final int SNAPSHOT_PERIOD = 5; //seconds
         
         // Camera physical configuration
-        public static final TunableNumber CAMERA_HEIGHT_METERS = new TunableNumber("PhotonVision/cameraHeightMeters", 0.25);
-        public static final TunableNumber CAMERA_PITCH_DEGREES = new TunableNumber("PhotonVision/cameraPitchDegrees", -15.0);
+        public static final TunableNumber CAMERA_HEIGHT_METERS = new TunableNumber("PhotonVision/cameraHeightMeters", 0.75);
+        public static final TunableNumber CAMERA_PITCH_DEGREES = new TunableNumber("PhotonVision/cameraPitchDegrees", -25.0);
         
         // Camera to robot transform (camera position relative to robot center)
-        public static final TunableNumber CAMERA_TO_ROBOT_X = new TunableNumber("PhotonVision/cameraToRobotX", 0.0);
-        public static final TunableNumber CAMERA_TO_ROBOT_Y = new TunableNumber("PhotonVision/cameraToRobotY", 0.0);
+        public static final TunableNumber CAMERA_TO_ROBOT_X = new TunableNumber("PhotonVision/cameraToRobotX", 0.14);  // 0.14m front
+        public static final TunableNumber CAMERA_TO_ROBOT_Y = new TunableNumber("PhotonVision/cameraToRobotY", 0.0);   // 0.00m left
+        public static final TunableNumber CAMERA_TO_ROBOT_Z = new TunableNumber("PhotonVision/cameraToRobotZ", 0.75);  // 0.75m up
         public static final TunableNumber CAMERA_TO_ROBOT_ROTATION_DEGREES = new TunableNumber("PhotonVision/cameraToRobotRotationDegrees", 0.0);
         
         // Camera resolution (for pixel coordinate processing)
