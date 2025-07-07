@@ -516,6 +516,13 @@ public class Superstructure extends SubsystemBase {
                     .andThen(Commands.waitUntil(this::poseAtGoal));
         
         }
+        if (to == SuperstructureState.L4){
+            return runElevator(to.getValue().getPose().elevatorHeight())
+                .andThen(
+                    Commands.waitUntil(elevator::isAtGoal),
+                    runSuperstructurePose(to.getValue().getPose()),
+                    Commands.waitUntil(this::poseAtGoal));
+        }
         if (to == SuperstructureState.CORAL_STATION_INTAKE){
             return runEndEffectorArm(to.getValue().getPose().endEffectorAngle())
                     .andThen(Commands.waitUntil(endEffectorArm::isAtGoal),

@@ -34,7 +34,7 @@ public class Robot extends LoggedRobot {
     if (!RobotConstants.useReplay) {
       // logger initialization
       Logger.addDataReceiver(new NT4Publisher());
-      Logger.addDataReceiver(new WPILOGWriter());
+      //Logger.addDataReceiver(new WPILOGWriter());
     } else {
       // Replaying a log, set up replay source
       setUseTiming(false); // Run as fast as possible

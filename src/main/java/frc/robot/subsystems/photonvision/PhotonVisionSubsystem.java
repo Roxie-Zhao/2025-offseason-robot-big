@@ -51,10 +51,8 @@ public class PhotonVisionSubsystem extends SubsystemBase {
     }
     
     /**
-     * Performs 3D projections for all detected targets in periodic()
-     * This runs the basic trigonometry-based projection method for continuous logging
-     * Uses PhotonVision's getAllUnreadResults() API to only process fresh vision data,
-     * preventing objects from moving with robot when vision tracking is lost
+     * Projects fresh detections to world coordinates and logs the results
+     * Only processes new vision data to prevent objects from moving with the robot
      */
     private void performPeriodicProjections() {
         // Get camera parameters from RobotConstants (tunable for calibration)
@@ -65,65 +63,30 @@ public class PhotonVisionSubsystem extends SubsystemBase {
         List<RawDetection> freshDetections = getFreshRawDetections();
         
         for (RawDetection detection : freshDetections) {
-            // Get robot-relative 3D pose
+            // Project to robot-relative 3D pose
             Pose3d robotRelativePose = projectTargetTo3D(detection, CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y);
             
-            // Get robot's pose from when detection was actually captured (not current pose!)
-            double detectionTimeSeconds = detection.timestampMs / 1000.0;
-            Pose3d robotWorldPoseAtDetection;
-            try {
-                robotWorldPoseAtDetection = RobotStateRecorder.getInstance().getTransform(
-                    edu.wpi.first.units.Units.Seconds.of(detectionTimeSeconds),
-                    lib.ironpulse.rbd.TransformRecorder.kFrameWorld,
-                    lib.ironpulse.rbd.TransformRecorder.kFrameRobot
-                ).orElse(RobotStateRecorder.getPoseWorldRobotCurrent()); // Fallback to current if historical not available
-            } catch (Exception e) {
-                // If historical pose lookup fails, use current pose as fallback
-                robotWorldPoseAtDetection = RobotStateRecorder.getPoseWorldRobotCurrent();
-                System.out.println("PhotonVision: Failed to get historical robot pose for detection, using current pose. Error: " + e.getMessage());
-            }
+            // Get robot pose from when detection was captured (accounts for robot movement during processing)
+            double detectionTime = detection.timestampMs / 1000.0;
+            Pose3d robotPoseAtDetection = RobotStateRecorder.getInstance().getTransform(
+                edu.wpi.first.units.Units.Seconds.of(detectionTime),
+                lib.ironpulse.rbd.TransformRecorder.kFrameWorld,
+                lib.ironpulse.rbd.TransformRecorder.kFrameRobot
+            ).orElse(RobotStateRecorder.getPoseWorldRobotCurrent());
             
-            // Transform to world coordinates using robot pose from when detection was made
-            Pose3d worldPose = robotWorldPoseAtDetection.transformBy(new Transform3d(robotRelativePose.getTranslation(), robotRelativePose.getRotation()));
+            // Transform to world coordinates
+            Pose3d worldPose = robotPoseAtDetection.transformBy(
+                new Transform3d(robotRelativePose.getTranslation(), robotRelativePose.getRotation()));
             
-            // Log both robot-relative and world poses
+            // Log poses
             String basePath = "PhotonVision/Camera" + detection.cameraId + "/Target" + getTargetIndex(detection);
             Logger.recordOutput(basePath + "/RobotRelativePose3D", robotRelativePose);
             Logger.recordOutput(basePath + "/WorldPose3D", worldPose);
-            
-            // Log world pose components separately for easier analysis
-            Logger.recordOutput(basePath + "/WorldX", worldPose.getX());
-            Logger.recordOutput(basePath + "/WorldY", worldPose.getY());
-            Logger.recordOutput(basePath + "/WorldZ", worldPose.getZ());
-            
-            // Log data processing info and coordinate transform details
-            Logger.recordOutput(basePath + "/ProcessedFreshData", true);
-            Logger.recordOutput(basePath + "/DetectionTimestamp", detection.timestampMs);
-            Logger.recordOutput(basePath + "/DetectionTimeSeconds", detectionTimeSeconds);
-            Logger.recordOutput(basePath + "/RobotPoseAtDetection", robotWorldPoseAtDetection);
-            
-            // Log current vs historical robot pose for debugging rotation issues
-            Pose3d currentRobotPose = RobotStateRecorder.getPoseWorldRobotCurrent();
-            double rotationDiffDegrees = Math.toDegrees(
-                currentRobotPose.getRotation().getZ() - robotWorldPoseAtDetection.getRotation().getZ()
-            );
-            Logger.recordOutput(basePath + "/RobotRotationDiffDegrees", rotationDiffDegrees);
         }
         
-        // Log detection counts for debugging
-        int totalDetections = getAllRawDetections().size();
-        Logger.recordOutput("PhotonVision/TotalDetections", totalDetections);
+        // Log detection counts
+        Logger.recordOutput("PhotonVision/TotalDetections", getAllRawDetections().size());
         Logger.recordOutput("PhotonVision/FreshDetections", freshDetections.size());
-        
-        // Debug output to show coordinate transformation behavior
-        if (freshDetections.size() > 0) {
-            System.out.println("PhotonVision: Processing " + freshDetections.size() + 
-                " fresh detections for coordinate transforms (total detections: " + totalDetections + 
-                ") - Y-axis corrected for PhotonVision coordinate system");
-        } else if (totalDetections > 0) {
-            System.out.println("PhotonVision: " + totalDetections + 
-                " total detections but no fresh data - maintaining last known world coordinates");
-        }
     }
     
     /**
@@ -328,70 +291,41 @@ public class PhotonVisionSubsystem extends SubsystemBase {
 
     /**
      * Projects a 2D detection to 3D pose relative to the robot center
-     * Uses raw detection data including pixel coordinates, pitch, yaw, skew, and area
      * @param detection The raw detection data
      * @param cameraResolutionX Camera resolution width in pixels
      * @param cameraResolutionY Camera resolution height in pixels
      * @return Estimated 3D pose of the target relative to the robot center
      */
     public Pose3d projectTargetTo3D(RawDetection detection, int cameraResolutionX, int cameraResolutionY) {
-        // Get camera constants from RobotConstants
-        double cameraHeightMeters = RobotConstants.PhotonvisionConstants.CAMERA_HEIGHT_METERS.get();
-        double cameraPitchDegrees = RobotConstants.PhotonvisionConstants.CAMERA_PITCH_DEGREES.get();
-        
-        // Convert angles to radians
-        double yawRadians = Units.degreesToRadians(detection.yaw);
-        double pitchRadians = Units.degreesToRadians(detection.pitch);
-        double cameraPitchRadians = Units.degreesToRadians(cameraPitchDegrees);
-        double skewRadians = Units.degreesToRadians(detection.skew);
-        
-        // Get tunable parameters
+        // Get camera configuration
+        double cameraHeight = RobotConstants.PhotonvisionConstants.CAMERA_HEIGHT_METERS.get();
+        double cameraPitch = RobotConstants.PhotonvisionConstants.CAMERA_PITCH_DEGREES.get();
         double groundHeight = RobotConstants.PhotonvisionConstants.GROUND_HEIGHT_METERS.get();
+        double distanceScale = RobotConstants.PhotonvisionConstants.DISTANCE_SCALE_FACTOR.get();
         
-        // Calculate distance using trigonometry only (reliable for irregular shapes)
-        double distance = 1.0; // Default fallback
-        double heightDifference = cameraHeightMeters - groundHeight;
-        double totalPitch = pitchRadians + cameraPitchRadians;
+        // Convert to radians
+        double yawRad = Units.degreesToRadians(detection.yaw);
+        double pitchRad = Units.degreesToRadians(detection.pitch);
+        double cameraPitchRad = Units.degreesToRadians(cameraPitch);
         
-        if (Math.abs(totalPitch) > 0.01) { // Avoid division by zero
-            distance = Math.abs(heightDifference / Math.tan(totalPitch));
-            
-            // Apply distance scale factor for fine-tuning
-            double distanceScaleFactor = RobotConstants.PhotonvisionConstants.DISTANCE_SCALE_FACTOR.get();
-            distance *= distanceScaleFactor;
-        }
+        // Calculate distance using trigonometry
+        double heightDiff = cameraHeight - groundHeight;
+        double totalPitch = pitchRad + cameraPitchRad;
+        double distance = Math.abs(totalPitch) > 0.01 ? 
+            Math.abs(heightDiff / Math.tan(totalPitch)) * distanceScale : 1.0;
         
-        // Calculate 3D position - objects are always on the ground
-        // Use horizontal distance projection for x and y
-        double x = distance * Math.cos(yawRadians);  // Forward/backward distance
-        double y = -distance * Math.sin(yawRadians); // Left/right distance (negated because PhotonVision +yaw = right, robot +Y = left)
-        // Z represents height relative to camera - since objects are on ground, use negative camera height
-        double z = -(cameraHeightMeters - groundHeight);
+        // Calculate 3D position (correct for PhotonVision coordinate system)
+        double x = distance * Math.cos(yawRad);     // Forward/backward
+        double y = -distance * Math.sin(yawRad);    // Left/right (inverted for robot coords)
+        double z = -(cameraHeight - groundHeight);  // Height relative to camera
         
-        // Create camera-relative pose
-        Translation3d cameraRelativeTranslation = new Translation3d(x, y, z);
-        Rotation3d cameraRelativeRotation = new Rotation3d(0, 0, 0);
-        Pose3d cameraRelativePose = new Pose3d(cameraRelativeTranslation, cameraRelativeRotation);
-        
-        // Transform from camera coordinates to robot coordinates
+        // Create and transform pose
+        Pose3d cameraRelativePose = new Pose3d(x, y, z, new Rotation3d());
         Pose3d robotRelativePose = transformCameraToRobot(cameraRelativePose);
         
-        // Log the projection calculation for debugging
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/YawDegrees", detection.yaw);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/Distance", distance);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/HeightDifference", heightDifference);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/CameraRelativeX", x);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/CameraRelativeY", y);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/CameraRelativeZ", z);
-        
-        // Log coordinate system verification for debugging
-        String yawDirection = detection.yaw > 0 ? "RIGHT" : (detection.yaw < 0 ? "LEFT" : "CENTER");
-        String yDirection = y > 0 ? "LEFT" : (y < 0 ? "RIGHT" : "CENTER");
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Debug/YawDirection", yawDirection);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Debug/YCoordinateDirection", yDirection);
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/RobotRelativeX", robotRelativePose.getX());
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/RobotRelativeY", robotRelativePose.getY());
-        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Projection/RobotRelativeZ", robotRelativePose.getZ());
+        // Log essential data
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/Distance", distance);
+        Logger.recordOutput("PhotonVision/Camera" + detection.cameraId + "/RobotRelativePose3D", robotRelativePose);
         
         return robotRelativePose;
     }

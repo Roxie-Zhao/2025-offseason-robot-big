@@ -93,7 +93,6 @@ public class PhotonVisionIOReal implements PhotonVisionIO {
                         // If pixel coordinate methods are not available, use 0 as placeholder
                         inputs.targetPixelX[i] = 0.0;
                         inputs.targetPixelY[i] = 0.0;
-                        System.out.println("Warning: Unable to extract pixel coordinates from target " + i + ": " + e.getMessage());
                     }
                 }
                 
@@ -138,10 +137,9 @@ public class PhotonVisionIOReal implements PhotonVisionIO {
                 inputs.targetPixelX = new double[0];
                 inputs.targetPixelY = new double[0];
                 
-                // Log status for debugging
+                // Log status
                 Logger.recordOutput("PhotonVision/Camera" + id + "/TotalTargets", 0);
                 Logger.recordOutput("PhotonVision/Camera" + id + "/ResultTimestamp", result.getTimestampSeconds());
-                System.out.println("=== PhotonVision Camera " + id + " === No targets detected at " + String.format("%.3f", result.getTimestampSeconds()) + "s");
             }
         } else {
             // Camera not returning results (likely disconnected or serious error)
@@ -161,10 +159,9 @@ public class PhotonVisionIOReal implements PhotonVisionIO {
             inputs.targetPixelX = new double[0];
             inputs.targetPixelY = new double[0];
             
-            // Log status for debugging
+            // Log status
             Logger.recordOutput("PhotonVision/Camera" + id + "/TotalTargets", 0);
             Logger.recordOutput("PhotonVision/Camera" + id + "/NoResults", true);
-            System.out.println("Warning: PhotonVision Camera " + id + " returned null result - possible connection issue");
         }
         
         // Log freshness status
