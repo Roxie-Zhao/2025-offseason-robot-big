@@ -73,17 +73,6 @@ public class ReefAimCommand extends Command {
           ReefAimCommandParamsNT.rotationOnTargetToleranceDegree.getValue() / 180.0f * Math.PI,
           ReefAimCommandParamsNT.rotationOnTargetVelocityToleranceDegreesPerSecond.getValue() / 180.0f * Math.PI
       );
-
-      Logging.info(
-          kTag, "Aiming Params: <Drive> Kp = %.2f, Ki = %.2f, Kd = %.2f" +
-              "<Rotation> Kp = %.2f, Ki = %.2f, Kd = %.2f",
-          ReefAimCommandParamsNT.translationKp.getValue(),
-          ReefAimCommandParamsNT.translationKi.getValue(),
-          ReefAimCommandParamsNT.translationKd.getValue(),
-          ReefAimCommandParamsNT.rotationKp.getValue(),
-          ReefAimCommandParamsNT.rotationKi.getValue(),
-          ReefAimCommandParamsNT.rotationKd.getValue()
-      );
     }
 
     // get current state
@@ -105,6 +94,7 @@ public class ReefAimCommand extends Command {
     poseWorldTarget = AimGoalSupplier.getDriveTarget(poseWorldRobot, finalDestinationPose);
 
     // PID init with field-relative velocities
+    rotationController.enableContinuousInput(0, Math.PI * 2);
     translationController.reset();
     rotationController.reset();
     indicatorSubsystem.setPattern(IndicatorIO.Patterns.AIMING);
@@ -203,12 +193,12 @@ public class ReefAimCommand extends Command {
 
   @NTParameter(tableName = "Params/" + kTag)
   public static class ReefAimCommandParams {
-    static final double translationKp = 5.5;
+    static final double translationKp = 6.5;
     static final double translationKi = 0.01;
     static final double translationKiZone = 0.5;
     static final double translationKd = 0.7;
     static final double translationVelocityMaxFar = 4.6;
-    static final double translationVelocityMaxNear = 2.5;
+    static final double translationVelocityMaxNear = 3.0;
     static final double translationParamsChangeDistance = 1.5;
     static final double translationAccelerationMax = 25.0;
 
