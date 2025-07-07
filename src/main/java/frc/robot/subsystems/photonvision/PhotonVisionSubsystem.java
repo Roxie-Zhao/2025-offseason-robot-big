@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.RobotConstants;
 import frc.robot.RobotStateRecorder;
+import frc.robot.PhotonVisionParamsNT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,16 +56,12 @@ public class PhotonVisionSubsystem extends SubsystemBase {
      * Only processes new vision data to prevent objects from moving with the robot
      */
     private void performPeriodicProjections() {
-        // Get camera parameters from RobotConstants (tunable for calibration)
-        final int CAMERA_RESOLUTION_X = (int) RobotConstants.PhotonvisionConstants.CAMERA_RESOLUTION_X.get();
-        final int CAMERA_RESOLUTION_Y = (int) RobotConstants.PhotonvisionConstants.CAMERA_RESOLUTION_Y.get();
-        
         // Process only fresh detections to prevent stale coordinate transformations
         List<RawDetection> freshDetections = getFreshRawDetections();
         
         for (RawDetection detection : freshDetections) {
             // Project to robot-relative 3D pose
-            Pose3d robotRelativePose = projectTargetTo3D(detection, CAMERA_RESOLUTION_X, CAMERA_RESOLUTION_Y);
+            Pose3d robotRelativePose = projectTargetTo3D(detection);
             
             // Get robot pose from when detection was captured (accounts for robot movement during processing)
             double detectionTime = detection.timestampMs / 1000.0;
@@ -292,16 +289,14 @@ public class PhotonVisionSubsystem extends SubsystemBase {
     /**
      * Projects a 2D detection to 3D pose relative to the robot center
      * @param detection The raw detection data
-     * @param cameraResolutionX Camera resolution width in pixels
-     * @param cameraResolutionY Camera resolution height in pixels
      * @return Estimated 3D pose of the target relative to the robot center
      */
-    public Pose3d projectTargetTo3D(RawDetection detection, int cameraResolutionX, int cameraResolutionY) {
+    public Pose3d projectTargetTo3D(RawDetection detection) {
         // Get camera configuration
-        double cameraHeight = RobotConstants.PhotonvisionConstants.CAMERA_HEIGHT_METERS.get();
-        double cameraPitch = RobotConstants.PhotonvisionConstants.CAMERA_PITCH_DEGREES.get();
-        double groundHeight = RobotConstants.PhotonvisionConstants.GROUND_HEIGHT_METERS.get();
-        double distanceScale = RobotConstants.PhotonvisionConstants.DISTANCE_SCALE_FACTOR.get();
+        double cameraHeight = PhotonVisionParamsNT.CAMERA_HEIGHT_METERS.getValue();
+        double cameraPitch = PhotonVisionParamsNT.CAMERA_PITCH_DEGREES.getValue();
+        double groundHeight = PhotonVisionParamsNT.GROUND_HEIGHT_METERS.getValue();
+        double distanceScale = PhotonVisionParamsNT.DISTANCE_SCALE_FACTOR.getValue();
         
         // Convert to radians
         double yawRad = Units.degreesToRadians(detection.yaw);
@@ -337,10 +332,10 @@ public class PhotonVisionSubsystem extends SubsystemBase {
      */
     private Pose3d transformCameraToRobot(Pose3d cameraRelativePose) {
         // Get camera position relative to robot center from constants
-        double cameraToRobotX = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_X.get();
-        double cameraToRobotY = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_Y.get();
-        double cameraToRobotZ = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_Z.get();
-        double cameraToRobotRotationDegrees = RobotConstants.PhotonvisionConstants.CAMERA_TO_ROBOT_ROTATION_DEGREES.get();
+        double cameraToRobotX = PhotonVisionParamsNT.CAMERA_TO_ROBOT_X.getValue();
+        double cameraToRobotY = PhotonVisionParamsNT.CAMERA_TO_ROBOT_Y.getValue();
+        double cameraToRobotZ = PhotonVisionParamsNT.CAMERA_TO_ROBOT_Z.getValue();
+        double cameraToRobotRotationDegrees = PhotonVisionParamsNT.CAMERA_TO_ROBOT_ROTATION_DEGREES.getValue();
         
         // Create the camera-to-robot transform
         Translation3d cameraToRobotTranslation = new Translation3d(cameraToRobotX, cameraToRobotY, cameraToRobotZ);
@@ -353,15 +348,13 @@ public class PhotonVisionSubsystem extends SubsystemBase {
     
     /**
      * Projects all detected targets to 3D poses relative to the robot center
-     * @param cameraResolutionX Camera resolution width in pixels
-     * @param cameraResolutionY Camera resolution height in pixels
      * @return List of 3D poses for all detected targets relative to robot center
      */
-    public List<Pose3d> projectAllTargetsTo3D(int cameraResolutionX, int cameraResolutionY) {
+    public List<Pose3d> projectAllTargetsTo3D() {
         List<Pose3d> poses = new ArrayList<>();
         
         for (RawDetection detection : getAllRawDetections()) {
-            poses.add(projectTargetTo3D(detection, cameraResolutionX, cameraResolutionY));
+            poses.add(projectTargetTo3D(detection));
         }
         
         return poses;

@@ -526,28 +526,32 @@ public final class RobotConstants {
         public static final String[] PV_CAMERA_NAMES = {"pv-cam1"};
         public static final boolean[] SNAPSHOT_ENABLED = {true};
         public static final int SNAPSHOT_PERIOD = 5; //seconds
+        public static final String kPhotonVisionTag = "PhotonVision";
         
-        // Camera physical configuration
-        public static final TunableNumber CAMERA_HEIGHT_METERS = new TunableNumber("PhotonVision/cameraHeightMeters", 0.75);
-        public static final TunableNumber CAMERA_PITCH_DEGREES = new TunableNumber("PhotonVision/cameraPitchDegrees", -25.0);
+        @NTParameter(tableName = "Params" + "/" + kPhotonVisionTag)
+        public final static class PhotonVisionParams {
+            // Camera physical configuration
+            public static final double CAMERA_HEIGHT_METERS = 0.75;
+            public static final double CAMERA_PITCH_DEGREES = -25.0;
+            
+            // Camera field of view (FOV)
+            public static final double CAMERA_HORIZONTAL_FOV_DEGREES = 70.0;
+            public static final double CAMERA_VERTICAL_FOV_DEGREES = 43.0;
+            
+            // Camera to robot transform (camera position relative to robot center)
+            public static final double CAMERA_TO_ROBOT_X = 0.14;  // 0.14m front
+            public static final double CAMERA_TO_ROBOT_Y = 0.0;   // 0.00m left
+            public static final double CAMERA_TO_ROBOT_Z = 0.75;  // 0.75m up
+            public static final double CAMERA_TO_ROBOT_ROTATION_DEGREES = 0.0;
+            
+            // Distance estimation parameters
+            public static final double DISTANCE_SCALE_FACTOR = 1.0;
+            public static final double GROUND_HEIGHT_METERS = 0.0;
+        }
         
-        // Camera field of view (FOV) - critical for accurate pixel-to-world coordinate conversion
-        public static final TunableNumber CAMERA_HORIZONTAL_FOV_DEGREES = new TunableNumber("PhotonVision/cameraHorizontalFOVDegrees", 70.0);
-        public static final TunableNumber CAMERA_VERTICAL_FOV_DEGREES = new TunableNumber("PhotonVision/cameraVerticalFOVDegrees", 43.0);
-        
-        // Camera to robot transform (camera position relative to robot center)
-        public static final TunableNumber CAMERA_TO_ROBOT_X = new TunableNumber("PhotonVision/cameraToRobotX", 0.14);  // 0.14m front
-        public static final TunableNumber CAMERA_TO_ROBOT_Y = new TunableNumber("PhotonVision/cameraToRobotY", 0.0);   // 0.00m left
-        public static final TunableNumber CAMERA_TO_ROBOT_Z = new TunableNumber("PhotonVision/cameraToRobotZ", 0.75);  // 0.75m up
-        public static final TunableNumber CAMERA_TO_ROBOT_ROTATION_DEGREES = new TunableNumber("PhotonVision/cameraToRobotRotationDegrees", 0.0);
-        
-        // Camera resolution (for pixel coordinate processing)
-        public static final TunableNumber CAMERA_RESOLUTION_X = new TunableNumber("PhotonVision/cameraResolutionX", 640);
-        public static final TunableNumber CAMERA_RESOLUTION_Y = new TunableNumber("PhotonVision/cameraResolutionY", 480);
-        
-        // Distance estimation parameters (trigonometry-based only)
-        public static final TunableNumber DISTANCE_SCALE_FACTOR = new TunableNumber("PhotonVision/distanceScaleFactor", 1.0);
-        public static final TunableNumber GROUND_HEIGHT_METERS = new TunableNumber("PhotonVision/groundHeightMeters", 0.0);
+        // Camera resolution constants (fixed hardware values)
+        public static final int CAMERA_RESOLUTION_X = 640;
+        public static final int CAMERA_RESOLUTION_Y = 480;
     }
 
   /**

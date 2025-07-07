@@ -37,7 +37,7 @@ public record SuperstructurePose(DoubleSupplier elevatorHeight, DoubleSupplier e
         CORAL_GROUND_INTAKE("Coral Ground Intake", 0.01, 0, 142),
         CORAL_INDEXED_INTAKE("Coral Indexed Intake", 0.57, 0, 148),
         CORAL_STATION_INTAKE("Coral Station Intake", 0.2, 180, 60),
-        IDLE("Idle",                    0.01,    0,   60),
+        IDLE("Idle",                    0.01,    0,   132),
         PROCESSOR("Processor", 0.16, 0, 60),
         AVOID("Avoid",                  0.57,     0,   60);
 
