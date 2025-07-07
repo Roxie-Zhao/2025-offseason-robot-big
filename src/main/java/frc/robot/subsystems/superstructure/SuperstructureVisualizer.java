@@ -4,16 +4,15 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-
+import frc.robot.Robot;
 import frc.robot.RobotStateRecorder;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
-
 public class SuperstructureVisualizer {
-    
+
     private final String name;
 
     // Conversion helper
@@ -70,7 +69,6 @@ public class SuperstructureVisualizer {
     // Coral diameter in meters
     private static final double CORAL_DIAMETER = mmToM(100); // Adjust this value based on actual coral size
 
-
     public SuperstructureVisualizer(String name) {
         this.name = name;
         // Elevator mechanism setup
@@ -105,7 +103,7 @@ public class SuperstructureVisualizer {
                 8,
                 new Color8Bit(Color.kPurple));
 
-            endEffectorArmCoral = new LoggedMechanismLigament2d(
+        endEffectorArmCoral = new LoggedMechanismLigament2d(
                 name + "endEffectorArmCoral",
                 END_EFFECTOR_LENGTH_CORAL,
                 90,
@@ -178,19 +176,21 @@ public class SuperstructureVisualizer {
     public void logCoralPose3D(boolean isIntakeHasCoral, boolean isEndeffectorHasCoral, boolean isEndeffectorHasAlgae) {
         // Check if coral is detected in the intake
         if (isIntakeHasCoral) {
-        Pose3d robotPose = RobotStateRecorder.getPoseWorldRobotCurrent();
+            Pose3d robotPose = RobotStateRecorder.getPoseWorldRobotCurrent();
             // Calculate the position of the coral at the middle of the intake arm
             // The coral is positioned at the end of the intake arm
             double intakeAngleRad = Math.toRadians(currentIntakeAngleDeg - 90);
-            
+
             // Create a rotation matrix for the intake angle
             Rotation3d intakeRotation = new Rotation3d(0, intakeAngleRad, 0);
-            
+
             // Calculate the position of the coral at the end of the intake arm
-            Pose3d coralPosition = robotPose.transformBy(new Transform3d(INTAKE_CENTER.plus(new Translation3d(INTAKE_LENGTH/2,0,0).rotateBy(intakeRotation)), intakeRotation));
-            
+            Pose3d coralPosition = robotPose.transformBy(new Transform3d(
+                    INTAKE_CENTER.plus(new Translation3d(INTAKE_LENGTH / 2, 0, 0).rotateBy(intakeRotation)),
+                    intakeRotation));
+
             // Log the Coral pose 3D
-            Logger.recordOutput("Superstructure/Visualizer/Gamepiece/IntakeCoral", 
+            Logger.recordOutput("Superstructure/Visualizer/Gamepiece/IntakeCoral",
                     coralPosition);
         } else {
             // If no coral is detected, log an empty pose
@@ -198,44 +198,54 @@ public class SuperstructureVisualizer {
         }
         if (isEndeffectorHasCoral) {
             Pose3d robotPose = RobotStateRecorder.getPoseWorldRobotCurrent();
-            
-            // Calculate the position of the coral at the middle of the end effector arm coral
-            double endEffectorAngleRad = Math.toRadians(-currentEndEffectorAngleDeg-180);
-            
+
+            // Calculate the position of the coral at the middle of the end effector arm
+            // coral
+            double endEffectorAngleRad = Math.toRadians(-currentEndEffectorAngleDeg - 180);
+
             // Create a rotation matrix for the end effector angle
             Rotation3d endEffectorRotation = new Rotation3d(0, endEffectorAngleRad, 0);
 
-            Translation3d endEffectorPosition = END_EFFECTOR_CENTER.plus(new Translation3d(0, 0, currentElevatorHeight+STAGE3_LENGTH));
-            
-            // Calculate the position of the coral at the middle of the end effector arm coral
+            Translation3d endEffectorPosition = END_EFFECTOR_CENTER
+                    .plus(new Translation3d(0, 0, currentElevatorHeight + STAGE3_LENGTH));
+
+            // Calculate the position of the coral at the middle of the end effector arm
+            // coral
             Pose3d coralPosition = robotPose.transformBy(new Transform3d(
-                endEffectorPosition.plus(new Translation3d(-END_EFFECTOR_LENGTH_CORAL, 0, END_EFFECTOR_MOUNT_ARM_LENGTH).rotateBy(endEffectorRotation)),
-                endEffectorRotation));
-            
+                    endEffectorPosition
+                            .plus(new Translation3d(-END_EFFECTOR_LENGTH_CORAL, 0, END_EFFECTOR_MOUNT_ARM_LENGTH)
+                                    .rotateBy(endEffectorRotation)),
+                    endEffectorRotation));
+
             Logger.recordOutput("Superstructure/Visualizer/Gamepiece/EECoral", coralPosition);
         } else {
             Logger.recordOutput("Superstructure/Visualizer/Gamepiece/EECoral", new Pose3d());
         }
         if (isEndeffectorHasAlgae) {
-                Pose3d robotPose = RobotStateRecorder.getPoseWorldRobotCurrent();
-                
-                // Calculate the position of the coral at the middle of the end effector arm coral
-                double endEffectorAngleRad = Math.toRadians(-currentEndEffectorAngleDeg-180);
-                
-                // Create a rotation matrix for the end effector angle
-                Rotation3d endEffectorRotation = new Rotation3d(0, endEffectorAngleRad, 0);
-    
-                Translation3d endEffectorPosition = END_EFFECTOR_CENTER.plus(new Translation3d(0, 0, currentElevatorHeight+STAGE3_LENGTH));
-                
-                // Calculate the position of the coral at the middle of the end effector arm coral
-                Pose3d coralPosition = robotPose.transformBy(new Transform3d(
-                    endEffectorPosition.plus(new Translation3d(END_EFFECTOR_LENGTH_ALGAE, 0, END_EFFECTOR_MOUNT_ARM_LENGTH).rotateBy(endEffectorRotation)),
+            Pose3d robotPose = RobotStateRecorder.getPoseWorldRobotCurrent();
+
+            // Calculate the position of the coral at the middle of the end effector arm
+            // coral
+            double endEffectorAngleRad = Math.toRadians(-currentEndEffectorAngleDeg - 180);
+
+            // Create a rotation matrix for the end effector angle
+            Rotation3d endEffectorRotation = new Rotation3d(0, endEffectorAngleRad, 0);
+
+            Translation3d endEffectorPosition = END_EFFECTOR_CENTER
+                    .plus(new Translation3d(0, 0, currentElevatorHeight + STAGE3_LENGTH));
+
+            // Calculate the position of the coral at the middle of the end effector arm
+            // coral
+            Pose3d coralPosition = robotPose.transformBy(new Transform3d(
+                    endEffectorPosition
+                            .plus(new Translation3d(END_EFFECTOR_LENGTH_ALGAE, 0, END_EFFECTOR_MOUNT_ARM_LENGTH)
+                                    .rotateBy(endEffectorRotation)),
                     endEffectorRotation));
-                
-                Logger.recordOutput("Superstructure/Visualizer/Gamepiece/EEAlgae", coralPosition);
-            } else {
-                Logger.recordOutput("Superstructure/Visualizer/Gamepiece/EEAlgae", new Pose3d());
-            }
+
+            Logger.recordOutput("Superstructure/Visualizer/Gamepiece/EEAlgae", coralPosition);
+        } else {
+            Logger.recordOutput("Superstructure/Visualizer/Gamepiece/EEAlgae", new Pose3d());
+        }
     }
 
     private void updateVisuals() {
@@ -243,13 +253,15 @@ public class SuperstructureVisualizer {
         elevatorHeight.setLength(currentElevatorHeight); // Stage 1 extends
 
         // Update intake components
-        intakeArm.setAngle(Rotation2d.fromRadians(Math.toRadians(-currentIntakeAngleDeg+90)));
+        intakeArm.setAngle(Rotation2d.fromRadians(Math.toRadians(-currentIntakeAngleDeg + 90)));
 
         // Update end effector components
-        endEffectorMountArm.setAngle(Rotation2d.fromRadians(Math.toRadians(currentEndEffectorAngleDeg+180)));
+        endEffectorMountArm.setAngle(Rotation2d.fromRadians(Math.toRadians(currentEndEffectorAngleDeg + 180)));
 
         // Log 2D mechanisms
-        Logger.recordOutput("Superstructure/Visualizer/" + name + "/Elevator/Mechanism2d", elevatorMechanism);
-        Logger.recordOutput("Superstructure/Visualizer/" + name + "/Intake/Mechanism2d", intakeMechanism);
+        if (Robot.isSimulation()) {
+            Logger.recordOutput("Superstructure/Visualizer/" + name + "/Elevator/Mechanism2d", elevatorMechanism);
+            Logger.recordOutput("Superstructure/Visualizer/" + name + "/Intake/Mechanism2d", intakeMechanism);
+        }
     }
 }

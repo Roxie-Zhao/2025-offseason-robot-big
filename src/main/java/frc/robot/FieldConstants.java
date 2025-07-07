@@ -31,8 +31,7 @@ public class FieldConstants {
     public static final double startingLineX =
             Units.inchesToMeters(299.438); // Measured from the inside of starting line
     public static final double aprilTagWidth = Units.inchesToMeters(6.5);
-    public static final AprilTagLayoutType defaultAprilTagType = AprilTagLayoutType.WELDED;
-    public static final AprilTagLayoutType officialAprilTagType = AprilTagLayoutType.WELDED;
+    public static final AprilTagLayoutType aprilTagType = AprilTagLayoutType.WELDED;
 
     @Getter
     public enum AprilTagLayoutType {
@@ -154,7 +153,7 @@ public class FieldConstants {
 
         static {
             // Initialize faces
-            var aprilTagLayout = AprilTagLayoutType.WELDED.getLayout();
+            var aprilTagLayout = aprilTagType.getLayout();
             centerFaces[0] = aprilTagLayout.getTagPose(18).get().toPose2d();
             centerFaces[1] = aprilTagLayout.getTagPose(19).get().toPose2d();
             centerFaces[2] = aprilTagLayout.getTagPose(20).get().toPose2d();

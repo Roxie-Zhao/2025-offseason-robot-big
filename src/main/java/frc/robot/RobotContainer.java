@@ -418,7 +418,7 @@ public class RobotContainer {
   }
 
   public FieldConstants.AprilTagLayoutType getAprilTagLayoutType() {
-    return FieldConstants.defaultAprilTagType;
+    return FieldConstants.aprilTagType;
   }
 
   public void setMegaTag2(boolean setMegaTag2) {

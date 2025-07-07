@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.net.WebServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -7,6 +8,8 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.FieldConstants.Reef;
+import frc.robot.commands.aimSequences.AimGoalSupplier;
 import frc.robot.utils.LoggedTracer;
 import lib.ironpulse.utils.PhoenixUtils;
 import lib.ntext.NTParameterRegistry;
@@ -71,6 +74,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledInit() {
+    System.out.println(AimGoalSupplier.isInHexagonalReefDangerZone(new Pose2d()));
   }
 
   @Override

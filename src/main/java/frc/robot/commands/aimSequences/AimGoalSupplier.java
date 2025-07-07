@@ -111,7 +111,7 @@ public class AimGoalSupplier {
      * @return Pose2d of the nearest AprilTag, accounting for edge cases and controller input
      */
     public static Pose2d getNearestTag(Pose2d robotPose) {
-        return FieldConstants.officialAprilTagType.getLayout().getTagPose(getNearestTagID(robotPose)).get().toPose2d();
+        return FieldConstants.aprilTagType.getLayout().getTagPose(getNearestTagID(robotPose)).get().toPose2d();
     }
 
     public static boolean isInReefDangerZone(Pose2d robotPose) {
@@ -242,7 +242,7 @@ public class AimGoalSupplier {
         int minDistanceID = ReefTagMin;
         int secondMinDistanceID = ReefTagMin;
         for (int i = ReefTagMin; i <= ReefTagMax; i++) {
-            double distance = FieldConstants.officialAprilTagType.getLayout().getTagPose(i).get().
+            double distance = FieldConstants.aprilTagType.getLayout().getTagPose(i).get().
                     toPose2d().getTranslation().getDistance(robotPose.getTranslation());
             if (distance < secondMinDistance) {
                 secondMinDistanceID = i;
@@ -309,7 +309,7 @@ public class AimGoalSupplier {
         int minDistanceID = ReefTagMin;
         int secondMinDistanceID = ReefTagMin;
         for (int i = ReefTagMin; i <= ReefTagMax; i++) {
-            double distance = FieldConstants.officialAprilTagType.getLayout().getTagPose(i).get().
+            double distance = FieldConstants.aprilTagType.getLayout().getTagPose(i).get().
                     toPose2d().getTranslation().getDistance(robotPose.getTranslation());
             if (distance < secondMinDistance) {
                 secondMinDistanceID = i;
