@@ -85,6 +85,7 @@ public class NetAimCommand extends Command {
 
     // PID init with field-relative velocities
     rotationController.enableContinuousInput(0, Math.PI * 2);
+    xController.setTolerance(0.05);
     xController.reset();
     rotationController.reset();
   }
@@ -97,11 +98,8 @@ public class NetAimCommand extends Command {
     double xCurr = poseWorldRobot.getTranslation().getX();
     double xFinal = poseWorldTarget.getTranslation().getX();
 
-    double vx = -xController.calculate(xCurr, xFinal);
+    double vx = xController.calculate(xCurr, xFinal);
     double vy = yVelocitySupplier.getAsDouble();
-    if (AllianceFlipUtil.shouldFlip()) {
-      vx = -vx;
-    }
     double thetaRT = poseRobotTarget.getRotation().getRadians();
     double omegaRT = -rotationController.calculate(thetaRT, 0.0);
 
@@ -117,12 +115,12 @@ public class NetAimCommand extends Command {
     swerve.setSwerveLimit(
         SwerveLimit.builder()
             .maxLinearVelocity(MetersPerSecond.of(maxTranslationVelocityMps))
-            .maxSkidAcceleration(MetersPerSecondPerSecond.of(ReefAimCommandParamsNT.translationAccelerationMax.getValue()))
-            .maxAngularVelocity(DegreesPerSecond.of(ReefAimCommandParamsNT.rotationVelocityMax.getValue()))
-            .maxAngularAcceleration(DegreesPerSecondPerSecond.of(ReefAimCommandParamsNT.rotationAccelerationMax.getValue()))
+            .maxSkidAcceleration(MetersPerSecondPerSecond.of(NetAimCommandParamsNT.translationAccelerationMax.getValue()))
+            .maxAngularVelocity(DegreesPerSecond.of(NetAimCommandParamsNT.rotationVelocityMax.getValue()))
+            .maxAngularAcceleration(DegreesPerSecondPerSecond.of(NetAimCommandParamsNT.rotationAccelerationMax.getValue()))
             .build()
     );
-    ChassisSpeeds VRT = new ChassisSpeeds(vx, vy, omegaRT);
+    ChassisSpeeds VRT = ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, omegaRT, poseWorldRobot.getRotation());
     swerve.runTwist(VRT);
 
     // logging
@@ -133,7 +131,7 @@ public class NetAimCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return false; // stop on operator command
+    return xController.atSetpoint();
   }
 
 
@@ -147,19 +145,19 @@ public class NetAimCommand extends Command {
   @NTParameter(tableName = "Params/" + kTag)
   public static class NetAimCommandParams {
     static final double xKp = 3.5;
-    static final double xKi = 0.01;
+    static final double xKi = 0.0;
     static final double xKiZone = 0.5;
     static final double xKd = 0.1;
     static final double translationVelocityMaxFar = 3.0;
-    static final double translationVelocityMaxNear = 2.5;
-    static final double translationParamsChangeDistance = 1.0;
-    static final double translationAccelerationMax = 15.0;
+    static final double translationVelocityMaxNear = 1.2;
+    static final double translationParamsChangeDistance = 2.0;
+    static final double translationAccelerationMax = 12.0;
 
     static final double rotationKp = 4.0;
     static final double rotationKi = 0.01;
     static final double rotationKiZone = 0.5;
-    static final double rotationKd = 0.5;
+    static final double rotationKd = 0.3;
     static final double rotationVelocityMax = 360.0;
-    static final double rotationAccelerationMax = 600.0;
+    static final double rotationAccelerationMax = 1000.0;
   }
 }

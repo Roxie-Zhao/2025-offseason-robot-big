@@ -172,7 +172,7 @@ public class Superstructure extends SubsystemBase {
         // Run periodic
         intake.periodic();
         endEffectorArm.periodic();
-//        elevator.periodic();
+        elevator.periodic();
 
         //simulated gamepiece tracking
         if (!RobotBase.isReal() && !RobotConstants.useReplay) {
@@ -551,13 +551,14 @@ public class Superstructure extends SubsystemBase {
                     runElevator(goal.getValue().getPose().elevatorHeight())
                         .alongWith(
                             runEndEffectorArm(to.getValue().getPose().endEffectorAngle()),
-                            runIntake(to.getValue().getPose().intakeAngle())
+                            runIntake(to.getValue().getPose().intakeAngle()),
+                            Commands.waitUntil(elevator::isSafeToFlip)
                         ),
                     // usual case: move superstructure then wait until it’s safe to flip
                     runSuperstructurePose(to.getValue().getPose())
-                        .andThen(Commands.waitUntil(elevator::isSafeToFlip)),
+                        .andThen(Commands.waitUntil(elevator::isAtGoal)),
                     // only flyby when we go from BNF -> AF
-                    () -> statesAboveFlip.contains(goal)
+                   () -> false
                 );
             }
         }

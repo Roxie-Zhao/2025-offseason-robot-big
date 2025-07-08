@@ -98,8 +98,8 @@ public class ClimberSubsystem extends SubsystemBase {
 
   @NTParameter(tableName = "Params/Subsystems/Climber")
   public static final class ClimberParams {
-    static final double RollerLockOnVoltage = -12.0;
-    static final double RollerHoldVoltage = -1.0;
+    static final double RollerLockOnVoltage = 12.0;
+    static final double RollerHoldVoltage = 1.0;
 
     static final double Kp = 18.0;
     static final double Ki = 0.0;
