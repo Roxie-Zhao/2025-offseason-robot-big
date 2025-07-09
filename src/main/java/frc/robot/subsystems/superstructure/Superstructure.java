@@ -20,6 +20,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import static frc.robot.subsystems.superstructure.SuperstructureState.L4;
 
 import java.util.*;
 import java.util.function.DoubleSupplier;
@@ -546,21 +547,20 @@ public class Superstructure extends SubsystemBase {
                         .andThen(Commands.waitUntil(endEffectorArm::isAtGoal));
             } else if (statesBelowNoFlip.contains(from)) {
                 // WIP: flyby
-                return Commands.either(
+                if (goal == SuperstructureState.L4)
                     // fly-by case: set elevator directly to goal
-                    runElevator(goal.getValue().getPose().elevatorHeight())
+                    return runElevator(goal.getValue().getPose().elevatorHeight())
                         .alongWith(
+                            Commands.runOnce(() -> System.out.println("flyby")),
                             runEndEffectorArm(to.getValue().getPose().endEffectorAngle()),
                             runIntake(to.getValue().getPose().intakeAngle()),
                             Commands.waitUntil(elevator::isSafeToFlip)
-                        ),
+                        );
                     // usual case: move superstructure then wait until it’s safe to flip
-                    runSuperstructurePose(to.getValue().getPose())
-                        .andThen(Commands.waitUntil(elevator::isAtGoal)),
-                    // only flyby when we go from BNF -> AF
-                   () -> false
-                );
-            }
+                    return runSuperstructurePose(to.getValue().getPose())
+                        .andThen(Commands.waitUntil(elevator::isAtGoal));
+                }
+            
         }
         return runSuperstructurePose(to.getValue().getPose())
                 .andThen(Commands.waitUntil(this::poseAtGoal).andThen(runSuperstructureRollers(to)));
