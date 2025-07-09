@@ -507,16 +507,6 @@ public class Superstructure extends SubsystemBase {
                     .alongWith(runSuperstructureRollers(to))
                     .andThen(Commands.waitUntil(this::poseAtGoal));
         }
-        // Special handling for coral indexing while holding algae - only move intake
-        if (to == SuperstructureState.CORAL_INDEXED_INTAKE) {
-            return runIntake(to.getValue().getPose().intakeAngle())
-                    .andThen(
-                            Commands.waitUntil(intake::isAtGoal),
-                            runSuperstructureRollers(to)
-                    )
-                    .andThen(Commands.waitUntil(this::poseAtGoal));
-
-        }
         if (to == SuperstructureState.L2 || to == SuperstructureState.L2_EJECT||to == SuperstructureState.L3){
             return runEndEffectorArm(to.getValue().getPose().endEffectorAngle())
                     .andThen( Commands.waitUntil(endEffectorArm::isAtGoal),
@@ -547,19 +537,22 @@ public class Superstructure extends SubsystemBase {
                         .andThen(Commands.waitUntil(endEffectorArm::isAtGoal));
             } else if (statesBelowNoFlip.contains(from)) {
                 // WIP: flyby
-                if (goal == SuperstructureState.L4)
+                return Commands.either(
                     // fly-by case: set elevator directly to goal
-                    return runElevator(goal.getValue().getPose().elevatorHeight())
+                    runElevator(goal.getValue().getPose().elevatorHeight())
                         .alongWith(
                             Commands.runOnce(() -> System.out.println("flyby")),
                             runEndEffectorArm(to.getValue().getPose().endEffectorAngle()),
                             runIntake(to.getValue().getPose().intakeAngle()),
                             Commands.waitUntil(elevator::isSafeToFlip)
-                        );
-                    // usual case: move superstructure then wait until it’s safe to flip
-                    return runSuperstructurePose(to.getValue().getPose())
-                        .andThen(Commands.waitUntil(elevator::isAtGoal));
-                }
+                        ),
+                    // usual case: move superstructure then wait until it's safe to flip
+                    runSuperstructurePose(to.getValue().getPose())
+                        .andThen(Commands.waitUntil(elevator::isAtGoal)),
+                    // only flyby when we go from BNF -> AF
+                    () -> goal == SuperstructureState.L4
+                );
+            }
             
         }
         return runSuperstructurePose(to.getValue().getPose())

@@ -286,7 +286,7 @@ public class RobotContainer {
       )
     );
 
-    // Left trigger binding - only executes if there is coral
+
     driverController
         .leftBumper()
         .whileTrue(
@@ -401,20 +401,48 @@ public class RobotContainer {
 
   /**
    * Helper method to create a scoring command sequence for a given branch and
-   * state
+   * state.
+   * Logs the branch and state for debugging and analysis.
    *
    * @param isRightBranch true for right branch, false for left branch
    * @param state         the superstructure state to target
    * @return the command sequence for scoring
    */
   private Command createScoringCommand(boolean isRightBranch, SuperstructureState state) {
-    return Commands.sequence(
-        Commands.runOnce(() -> destinationSupplier.updateBranch(isRightBranch)),
-        Commands.runOnce(() -> destinationSupplier.setStateSetPoint(state)),
-        new SuperCycleCommand(swerve, superstructure, indicatorSubsystem)
-    // After SuperCycleCommand completes, continue to algae prestate until out of
-    // danger zone
-    ).onlyIf(() -> superstructure.hasCoral());
+    return new BlocklessEitherCommand(
+        // If we have coral, run the SuperCycle command
+        Commands.sequence(
+            Commands.runOnce(() -> {
+              destinationSupplier.updateBranch(isRightBranch);
+            }),
+            Commands.runOnce(() -> {
+              destinationSupplier.setStateSetPoint(state);
+            }),
+            new SuperCycleCommand(swerve, superstructure, indicatorSubsystem)
+        ),
+        // If no coral, check if intake button (right stick) is pressed
+        new BlocklessEitherCommand(
+            // If intake button is pressed, run reef aim command then supercycle when coral is intaken
+            Commands.sequence(
+                Commands.runOnce(() -> {
+                  destinationSupplier.updateBranch(isRightBranch);
+                }),
+                Commands.runOnce(() -> {
+                  destinationSupplier.setStateSetPoint(state);
+                }),
+                Commands.runOnce(() -> {
+                  destinationSupplier.setCurrentGamePiece(DestinationSupplier.GamePiece.CORAL_SCORING);
+                }),
+                new ReefAimCommand(swerve, indicatorSubsystem),
+                Commands.waitUntil(() -> superstructure.hasCoral()),
+                new SuperCycleCommand(swerve, superstructure, indicatorSubsystem)
+            ),
+            // If intake button is not pressed, do nothing
+            Commands.none(),
+            () -> driverController.rightStick().getAsBoolean()
+        ),
+        () -> superstructure.hasCoral()
+    );
   }
 
   /**
