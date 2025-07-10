@@ -160,8 +160,9 @@ public class CoralIntakeAssistCommand extends Command {
         // Get robot pose in world frame
         Pose2d robotWorldPose = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
         
-        // Use base chassis speeds (driver input) instead of estimated velocity - much cleaner!
-        Translation2d driverInputVelocity = new Translation2d(baseChassisSpeeds.vxMetersPerSecond, baseChassisSpeeds.vyMetersPerSecond);
+        // Use base chassis speeds (driver input) and convert to world frame
+        Translation2d driverInputRobotFrame = new Translation2d(baseChassisSpeeds.vxMetersPerSecond, baseChassisSpeeds.vyMetersPerSecond);
+        Translation2d driverInputVelocity = driverInputRobotFrame.rotateBy(robotWorldPose.getRotation());
         
         // Get the most aligned coral from CoralRecorder
         Optional<CoralRecorder.CoralInfo> mostAlignedCoralOpt = getMostAlignedCoral(robotWorldPose);
@@ -186,29 +187,30 @@ public class CoralIntakeAssistCommand extends Command {
         double dotProduct = driverInputVelocity.getX() * robotToCoralVector.getX() + 
                            driverInputVelocity.getY() * robotToCoralVector.getY();
         
-        // Calculate angle threshold check: cos(maxAngle) * |velocity| * |robotToCoral|
-        double requiredDotProduct = Math.cos(Math.toRadians(CoralIntakeAssistParamsNT.maxAngleTowardsCoralDegrees.getValue())) 
-                                   * driverInputVelocity.getNorm() 
-                                   * robotToCoralVector.getNorm();
-        
-        boolean movingTowardsCoral = dotProduct >= requiredDotProduct;
-        
-        // Calculate actual angle for logging (with safety checks)
+        // Calculate actual angle between driver input and robot-to-coral vector
         double velocityMagnitude = driverInputVelocity.getNorm();
         double robotToCoralMagnitude = robotToCoralVector.getNorm();
         double actualAngleDegrees = 0.0;
+        boolean movingTowardsCoral = false;
         
         if (velocityMagnitude > 0.01 && robotToCoralMagnitude > 0.01) {
             double cosAngle = MathUtil.clamp(dotProduct / (velocityMagnitude * robotToCoralMagnitude), -1.0, 1.0);
             actualAngleDegrees = Math.toDegrees(Math.acos(cosAngle));
+            
+            // Check if angle is within threshold - FIXED: angle must be LESS than threshold
+            movingTowardsCoral = actualAngleDegrees <= CoralIntakeAssistParamsNT.maxAngleTowardsCoralDegrees.getValue();
         }
         
         // Detailed logging for debugging
         Logger.recordOutput("CoralIntakeAssist/CoralWorldPosition", coralWorldPosition);
-        
+        Logger.recordOutput("CoralIntakeAssist/AngleToCoralDegrees", actualAngleDegrees);
+        Logger.recordOutput("CoralIntakeAssist/AngleThreshold", CoralIntakeAssistParamsNT.maxAngleTowardsCoralDegrees.getValue());
+        Logger.recordOutput("CoralIntakeAssist/MovingTowardsCoral", movingTowardsCoral);
+        Logger.recordOutput("CoralIntakeAssist/DotProduct", dotProduct);
         
         if (!movingTowardsCoral) {
             Logger.recordOutput("CoralIntakeAssist/IsActive", false);
+            Logger.recordOutput("CoralIntakeAssist/Reason", "Not moving towards coral (angle: " + String.format("%.1f", actualAngleDegrees) + "°)");
             return new Translation2d();
         }
         
@@ -329,7 +331,7 @@ public class CoralIntakeAssistCommand extends Command {
     public static class CoralIntakeAssistParams {
         static final double assistKp = 0.4;                        // Proportional gain for assist velocity
         static final double maxAssistVelocity = 3.0;               // Maximum assist velocity (m/s)
-        static final double minRobotSpeed = 0.2;                   // Minimum robot speed to activate assist (m/s)              // Maximum yaw angle for coral selection (degrees)
-        static final double maxAngleTowardsCoralDegrees = 90.0;    // Maximum angle to consider "moving towards" coral (degrees)
+        static final double minRobotSpeed = 0.2;                   // Minimum robot speed to activate assist (m/s)
+        static final double maxAngleTowardsCoralDegrees = 45.0;    // Maximum angle to consider "moving towards" coral (degrees) - FIXED from 90°
     }
 } 
