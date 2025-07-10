@@ -271,4 +271,12 @@ public class MathTools {
         }
         return angle;
     }
+
+    public static double dot(Translation2d v1, Translation2d v2) {
+        return v1.getX() * v2.getX() + v1.getY() * v2.getY();
+    }
+
+    public static double cross(Translation2d a, Translation2d b) {
+        return a.getX() * b.getY() - a.getY() * b.getX();
+    }
 }

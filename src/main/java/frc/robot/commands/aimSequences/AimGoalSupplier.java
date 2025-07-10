@@ -337,10 +337,10 @@ public class AimGoalSupplier {
   public enum ReefFace {
     FarFlat(10, 21),
     NearFlat(7, 18),
-    FarRightTilt(11, 22),
-    NearRightTilt(6, 17),
-    FarLeftTilt(8, 20),
-    NearLeftTilt(9, 19);
+    FarRightTilt(9, 22),
+    NearRightTilt(8, 17),
+    FarLeftTilt(11, 20),
+    NearLeftTilt(6, 19);
 
     ReefFace(int redId, int blueId) {
       this.redId = redId;

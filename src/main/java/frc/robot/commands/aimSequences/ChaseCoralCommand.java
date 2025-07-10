@@ -60,6 +60,7 @@ public class ChaseCoralCommand extends Command {
     prevDirection = RobotStateRecorder.getPoseDriverRobotCurrent().getRotation().toRotation2d();
     driveController.reset();
     turnController.reset();
+    forwardVel = RobotStateRecorder.getVelocityRobotCurrent().getX();
     state = State.ACTIVE_CHASING;
   }
 
@@ -146,6 +147,6 @@ public class ChaseCoralCommand extends Command {
 
     static final double activeChaseMaxVelocityMps = 2.0;
     static final double blindChaseMaxTimeSeconds = 0.5;
-    static final double blindChaseMaxVelocityMps = 1.5;
+    static final double blindChaseMaxVelocityMps = 2.0;
   }
 }

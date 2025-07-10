@@ -4,26 +4,28 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import static frc.robot.auto.AutoActions.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
+import frc.robot.FieldConstants;
 import frc.robot.auto.AutoRoutine;
 import frc.robot.commands.aimSequences.AimGoalSupplier;
 import frc.robot.subsystems.superstructure.SuperstructureState;
 
-public class AutoRight5C1A extends AutoRoutine {
+import static edu.wpi.first.wpilibj2.command.Commands.*;
+import static frc.robot.auto.AutoActions.*;
+
+public class AutoLeft5C1A extends AutoRoutine {
   private static final Pose2d startPose = new Pose2d(
-      new Translation2d(7.140, 0.500),
+      new Translation2d(7.140, FieldConstants.fieldWidth - 0.50),
       Rotation2d.kZero
   );
 
-  public AutoRight5C1A() {
-    super("Right5C1A");
+  public AutoLeft5C1A() {
+    super("Left5C1A");
   }
 
   @Override
   public Command getAutoCommand() {
     var scorePreload = sequence(
-        setGoal(AimGoalSupplier.ReefFace.FarRightTilt, false, SuperstructureState.L4),
+        setGoal(AimGoalSupplier.ReefFace.FarLeftTilt, false, SuperstructureState.L4),
         parallel(
             driveToSelectedTarget(),
             prepare()
@@ -32,12 +34,12 @@ public class AutoRight5C1A extends AutoRoutine {
     );
 
     var driveToDpAndIntake1 = deadline(
-        driveToDecisionPoint(false, true),
+        driveToDecisionPoint(true, true),
         intake()
     );
 
     var scoreNearL4Right = sequence(
-        setGoal(AimGoalSupplier.ReefFace.NearRightTilt, true, SuperstructureState.L4),
+        setGoal(AimGoalSupplier.ReefFace.NearLeftTilt, true, SuperstructureState.L4),
         parallel(
             driveToSelectedTarget(),
             prepare()
@@ -46,12 +48,12 @@ public class AutoRight5C1A extends AutoRoutine {
     );
 
     var driveToDpAndIntake2 = deadline(
-        driveToDecisionPoint(false, false),
+        driveToDecisionPoint(true, false),
         intake()
     );
 
     var scoreNearL4Left = sequence(
-        setGoal(AimGoalSupplier.ReefFace.NearRightTilt, false, SuperstructureState.L4),
+        setGoal(AimGoalSupplier.ReefFace.NearLeftTilt, false, SuperstructureState.L4),
         parallel(
             driveToSelectedTarget(),
             prepare()
@@ -60,12 +62,12 @@ public class AutoRight5C1A extends AutoRoutine {
     );
 
     var driveToDpAndIntake3 = deadline(
-        driveToDecisionPoint(false, false),
+        driveToDecisionPoint(true, false),
         intake()
     );
 
     var scoreNearL3Right = sequence(
-        setGoal(AimGoalSupplier.ReefFace.NearRightTilt, true, SuperstructureState.L3),
+        setGoal(AimGoalSupplier.ReefFace.NearLeftTilt, true, SuperstructureState.L3),
         parallel(
             driveToSelectedTarget(),
             prepare()
@@ -74,12 +76,12 @@ public class AutoRight5C1A extends AutoRoutine {
     );
 
     var driveToDpAndIntake4 = deadline(
-        driveToDecisionPoint(false, false),
+        driveToDecisionPoint(true, false),
         intake()
     );
 
     var scoreNearL3Left = sequence(
-        setGoal(AimGoalSupplier.ReefFace.NearRightTilt, false, SuperstructureState.L3),
+        setGoal(AimGoalSupplier.ReefFace.NearLeftTilt, false, SuperstructureState.L3),
         parallel(
             driveToSelectedTarget(),
             prepare()
@@ -89,7 +91,7 @@ public class AutoRight5C1A extends AutoRoutine {
 
     var ending = sequence(
         takeAlgae(),
-        driveToEndPoint(false),
+        driveToEndPoint(true),
         indicateEnd()
     );
 

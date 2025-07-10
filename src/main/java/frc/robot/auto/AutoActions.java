@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.FieldConstants;
 import frc.robot.RobotConstants;
 import frc.robot.RobotStateRecorder;
 import frc.robot.commands.aimSequences.AimGoalSupplier;
@@ -27,37 +28,45 @@ import lib.ironpulse.rbd.TransformRecorder;
 import lib.ironpulse.swerve.Swerve;
 import lib.ironpulse.swerve.SwerveCommands;
 import lib.ironpulse.swerve.SwerveLimit;
+import lib.ntext.NTParameter;
 import org.littletonrobotics.AllianceFlipUtil;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.List;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.commands.aimSequences.AimGoalSupplier.isInHexagonalReefDangerZone;
+import static lib.ironpulse.math.MathTools.cross;
 
 public class AutoActions {
+  private static final Pose2d kLeftDecisionPoint = new Pose2d(
+      new Translation2d(2.2, 6.3),
+      Rotation2d.fromDegrees(135)
+  );
+  private static final Pose2d kLeftBackoff = new Pose2d(
+      new Translation2d(4.0, 6.3),
+      Rotation2d.fromDegrees(180)
+  );
+  private static final Pose2d kLeftEnd = new Pose2d(
+      new Translation2d(2.50, 5.3),
+      Rotation2d.fromDegrees(180)
+  );
+  private static final Pose2d kRightDecisionPoint = new Pose2d(
+      new Translation2d(2.2, 1.5),
+      Rotation2d.fromDegrees(-135)
+  );
+  private static final Pose2d kRightBackoff = new Pose2d(
+      new Translation2d(4.0, 1.5),
+      Rotation2d.fromDegrees(180.0)
+  );
+  private static final Pose2d kRightEnd = new Pose2d(
+      new Translation2d(2.50, 2.7),
+      Rotation2d.fromDegrees(180)
+  );
   private static Swerve swerve;
   private static Superstructure superstructure;
   private static IndicatorSubsystem indicator;
   private static PhotonVisionSubsystem photon;
-
-  private static Pose2d kLeftDecisionPoint = new Pose2d(
-      new Translation2d(2.0, 6.3),
-      Rotation2d.fromDegrees(135)
-  );
-  private static Pose2d kLeftBackoff = new Pose2d(
-      new Translation2d(4.0, 6.3),
-      Rotation2d.fromDegrees(180)
-  );
-
-  private static Pose2d kRightDecisionPoint = new Pose2d(
-      new Translation2d(2.0, 1.5),
-      Rotation2d.fromDegrees(-135)
-  );
-  private static Pose2d kRightBackoff = new Pose2d(
-      new Translation2d(4.0, 1.5),
-      Rotation2d.fromDegrees(180.0)
-  );
-
 
   public static void init(Swerve swerve, Superstructure superstructure, IndicatorSubsystem indicator, PhotonVisionSubsystem photon) {
     AutoActions.swerve = swerve;
@@ -78,6 +87,13 @@ public class AutoActions {
 
   public static Command chase() {
     return new ChaseCoralCommand(swerve, photon);
+  }
+
+  public static Command chaseAndBackoff() {
+    return Commands.sequence(
+        chase().unless(AutoActions::isInIntakeDangerZone),
+        driveToDecisionPoint(false, false)
+    ).until(superstructure::hasCoral);
   }
 
   public static Command setGoal(AimGoalSupplier.ReefFace face, boolean isRight, SuperstructureState level) {
@@ -108,15 +124,27 @@ public class AutoActions {
     return new PathPlannerPath(pts, constraints, null, endState);
   }
 
-  public static Command driveToDecisionPoint(boolean isLeft) {
+  public static Command driveToDecisionPoint(boolean isLeft, boolean shouldBackoff) {
     return swerve.defer(() -> {
       Pose2d current = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
-      Pose2d backoff = isLeft ? kLeftBackoff : kRightBackoff;
-      Pose2d decision = isLeft ? kLeftDecisionPoint : kRightDecisionPoint;
+      Pose2d backoff = AllianceFlipUtil.apply(isLeft ? kLeftBackoff : kRightBackoff);
+      Pose2d decision = AllianceFlipUtil.apply(isLeft ? kLeftDecisionPoint : kRightDecisionPoint);
 
-      List<Pose2d> waypoints = current.getX() > backoff.getX()
+      List<Pose2d> waypoints = shouldBackoff
           ? List.of(current, backoff, decision)
           : List.of(current, decision);
+
+      PathPlannerPath path = generatePath(waypoints, 1.5);
+      return followPath(path);
+    });
+  }
+
+  public static Command driveToEndPoint(boolean isLeft) {
+    return swerve.defer(() -> {
+      Pose2d current = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
+      Pose2d end = AllianceFlipUtil.apply(isLeft ? kLeftDecisionPoint : kRightDecisionPoint);
+
+      List<Pose2d> waypoints = List.of(current, end);
 
       PathPlannerPath path = generatePath(waypoints, 1.5);
       return followPath(path);
@@ -137,8 +165,10 @@ public class AutoActions {
             RobotConstants.LOOPER_DT
         ),
         RobotConstants.AUTO_ROBOT_CONFIG,
-        AllianceFlipUtil::shouldFlip,
+        () -> false, // do not flip in command, flip done by user before passing
         swerve
+    ).beforeStarting(
+        () -> Logger.recordOutput("Temp/Traj", path.getPathPoses().toArray(new Pose2d[0]))
     );
   }
 
@@ -187,7 +217,6 @@ public class AutoActions {
                 .finallyDo(() -> System.out.println("done"))
         );
   }
-
 
   public static Command reset() {
     return SwerveCommands.resetAngle(swerve, new Rotation2d())
@@ -251,41 +280,19 @@ public class AutoActions {
     return Commands.print("Auto Ended!");
   }
 
-  /**
-   * Helper method to check if robot is in the hexagonal reef danger zone
-   *
-   * @return true if robot is in danger zone
-   */
+  // ----------------------------------- Helpers ------------------------------------------------
+  private static boolean isSafeToRaise() {
+    return DestinationSupplier.isSafeToRaise(
+        RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d(),
+        DestinationSupplier.getInstance().getCurrentBranch()
+    );
+  }
+
   private static boolean isInReefDangerZone() {
     Pose2d pose = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
     return AimGoalSupplier.isInHexagonalReefDangerZone(pose);
   }
 
-  /**
-   * Determines the appropriate intake state based on current conditions
-   *
-   * @return SuperstructureState for intake operation
-   */
-  private static SuperstructureState determineIntakeState() {
-    boolean hasAlgae = superstructure.hasAlgae();
-    boolean inDangerZone = isInReefDangerZone();
-
-    System.out.println("Intake State Decision - HasAlgae: " + hasAlgae + ", InDangerZone: " + inDangerZone);
-
-    // If we have algae OR we're in danger zone, use indexed intake
-    // Otherwise, use ground intake for safety
-    if (hasAlgae || inDangerZone) {
-      return SuperstructureState.CORAL_INDEXED_INTAKE;
-    } else {
-      return SuperstructureState.CORAL_GROUND_INTAKE;
-    }
-  }
-
-  /**
-   * Determines if the intake operation is complete based on current conditions
-   *
-   * @return true if intake is complete
-   */
   private static boolean isIntakeComplete() {
     boolean hasAlgae = superstructure.hasAlgae();
     boolean inDangerZone = isInReefDangerZone();
@@ -302,11 +309,65 @@ public class AutoActions {
     }
   }
 
+  private static SuperstructureState determineIntakeState() {
+    boolean hasAlgae = superstructure.hasAlgae();
+    boolean inDangerZone = isInReefDangerZone();
 
-  // ----------------------------------- Helpers ------------------------------------------------
-  private static boolean isSafeToRaise() {
-    return DestinationSupplier.isSafeToRaise(
-        RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d(),
-        DestinationSupplier.getInstance().getCurrentBranch());
+    // If we have algae OR we're in danger zone, use indexed intake
+    // Otherwise, use ground intake for safety
+    if (hasAlgae || inDangerZone) {
+      return SuperstructureState.CORAL_INDEXED_INTAKE;
+    } else {
+      return SuperstructureState.CORAL_GROUND_INTAKE;
+    }
   }
+
+
+  public static boolean isInIntakeDangerZone() {
+    // get robot position in field-flipped coordinates
+    var p = AllianceFlipUtil
+        .apply(RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d())
+        .getTranslation();
+
+    // define the two line endpoints and direction vectors
+    var rRight = new Translation2d(0.0, AutoParamsNT.RightTriangleY.getValue());
+    var vRight = new Translation2d(
+        AutoParamsNT.RightTriangleX.getValue(),
+        0.0
+    ).minus(rRight);
+
+    var rLeft = new Translation2d(0.0, AutoParamsNT.LeftTriangleY.getValue());
+    var vLeft = new Translation2d(
+        AutoParamsNT.LeftTriangleX.getValue(),
+        FieldConstants.fieldWidth
+    ).minus(rLeft);
+
+    double xBottom = AutoParamsNT.BoundaryOffset.getValue();
+    var pRelRight = p.minus(rRight);
+    double crossRight = cross(pRelRight, vRight);
+    var pRelLeft = p.minus(rLeft);
+    double crossLeft = cross(pRelLeft, vLeft);
+
+    boolean beyondBottom = p.getX() < xBottom;
+    boolean beyondRightLine = crossRight > 0;
+    boolean beyondLeftLine = crossLeft < 0;
+    boolean outOfYBounds = p.getY() < AutoParamsNT.BoundaryOffset.getValue() || p.getY() > FieldConstants.fieldWidth - AutoParamsNT.BoundaryOffset.getValue();
+
+    return beyondRightLine || beyondLeftLine || beyondBottom || outOfYBounds;
+  }
+
+  @NTParameter(tableName = "Params/Auto")
+  public static class AutoParams {
+    static final double TrajectoryMaxLinVelMps = 4.5;
+    static final double TrajectoryMaxLinAccelMps2 = 12.0;
+    static final double TrajectoryMaxAngVelDegps = 600.0;
+    static final double TrajectoryMaxAngAccelDegps2 = 1200.0;
+
+    static final double RightTriangleX = 1.669;
+    static final double RightTriangleY = 1.276;
+    static final double LeftTriangleX = 1.786;
+    static final double LeftTriangleY = 6.76;
+    static final double BoundaryOffset = 0.70;
+  }
+
 }

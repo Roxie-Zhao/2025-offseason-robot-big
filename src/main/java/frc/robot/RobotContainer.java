@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.auto.AutoActions;
 import frc.robot.auto.AutoSelector;
+import frc.robot.auto.routines.AutoLeft1C;
+import frc.robot.auto.routines.AutoLeft5C1A;
 import frc.robot.auto.routines.AutoRight5C1A;
 import frc.robot.auto.routines.AutoTest;
 import frc.robot.commands.CoralIntakeAssistCommand;
@@ -200,6 +202,8 @@ public class RobotContainer {
     AutoActions.init(swerve, superstructure, indicatorSubsystem, photonVisionSubsystem);
     AutoSelector.getInstance().registerAuto("TestAuto", new AutoTest());
     AutoSelector.getInstance().registerAuto("Right 5C1A", new AutoRight5C1A());
+    AutoSelector.getInstance().registerAuto("Left 5C1A", new AutoLeft5C1A());
+    AutoSelector.getInstance().registerAuto("Left 1C", new AutoLeft1C());
 
 
     CommandScheduler.getInstance().unregisterSubsystem(climberSubsystem);
@@ -260,9 +264,7 @@ public class RobotContainer {
     // new ReefAimCommand(swerve, indicatorSubsystem)
     // )
     // );
-     driverController.x().whileTrue(
-      new ChaseCoralCommand(swerve, photonVisionSubsystem)
-     );
+     driverController.x().whileTrue(AutoActions.chaseAndBackoff());
 
 //    driverController.x().whileTrue(
 //      Commands.either(
@@ -410,7 +412,7 @@ public class RobotContainer {
             Commands.runOnce(() -> {
               destinationSupplier.setStateSetPoint(state);
             }),
-            new SuperCycleCommand(swerve, superstructure, indicatorSubsystem)
+            new SuperCycleCommand(swerve, superstructure, indicatorSubsystem, true)
         ),
         // If no coral, check if intake button (right stick) is pressed
         new BlocklessEitherCommand(
@@ -425,7 +427,7 @@ public class RobotContainer {
                 new ReefAimCommand(swerve, indicatorSubsystem)
               ).until(superstructure::hasCoral)
             )
-            .andThen(new SuperCycleCommand(swerve, superstructure, indicatorSubsystem)),
+            .andThen(new SuperCycleCommand(swerve, superstructure, indicatorSubsystem, true)),
             // If intake button is not pressed, do nothing
             Commands.none(),
             ()-> superstructure.getState() == SuperstructureState.CORAL_GROUND_INTAKE
