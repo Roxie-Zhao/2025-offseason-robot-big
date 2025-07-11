@@ -206,14 +206,14 @@ public class ReefAimCommand extends Command {
 
   @NTParameter(tableName = "Params/" + kTag)
   public static class ReefAimCommandParams {
-    static final double translationKp = 3.7;
+    static final double translationKp = 3.5;
     static final double translationKi = 0.0;
     static final double translationKiZone = 0.00;
-    static final double translationKd = 0.12;
+    static final double translationKd = 0.15;
     static final double translationVelocityMaxFar = 4.6;
-    static final double translationVelocityMaxNear = 3.5;
+    static final double translationVelocityMaxNear = 3.0;
     static final double translationParamsChangeDistance = 2.0;
-    static final double translationAccelerationMax = 14.0;
+    static final double translationAccelerationMax = 8.0;
 
     static final double rotationKp = 4.5;
     static final double rotationKi = 0.0;
