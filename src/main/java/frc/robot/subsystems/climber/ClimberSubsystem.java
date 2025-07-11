@@ -109,9 +109,9 @@ public class ClimberSubsystem extends SubsystemBase {
     static final double Acceleration = 10000.0;
     static final double Jerk = 0.0;
 
-    static final double DeployAngle = 375.0;
-    static final double IdleAngle = 375.0;
-    static final double ClimbAngle = -175.0;
+    static final double DeployAngle = 0;
+    static final double IdleAngle = 0;
+    static final double ClimbAngle = -400.0;
   }
 
 }

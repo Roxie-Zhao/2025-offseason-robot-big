@@ -206,7 +206,7 @@ public class RobotContainer {
     AutoSelector.getInstance().registerAuto("Left 1C", new AutoLeft1C());
 
 
-    CommandScheduler.getInstance().unregisterSubsystem(climberSubsystem);
+    //CommandScheduler.getInstance().unregisterSubsystem(climberSubsystem);
 
     configureDriverBindings();
     configureStreamDeckBindings();
@@ -266,14 +266,14 @@ public class RobotContainer {
     // );
      driverController.x().whileTrue(AutoActions.chaseAndBackoff());
 
-//    driverController.x().whileTrue(
-//      Commands.either(
-//      Commands.run(() ->
-//      climberSubsystem.setWantedState(ClimberSubsystem.WantedState.CLIMB)),
-//      Commands.run(() ->
-//      climberSubsystem.setWantedState(ClimberSubsystem.WantedState.DEPLOY)),
-//      climberSubsystem::hasDeployed
-//    ));
+   driverController.povDown().whileTrue(
+     Commands.either(
+     Commands.run(() ->
+     climberSubsystem.setWantedState(ClimberSubsystem.WantedState.CLIMB)),
+     Commands.run(() ->
+     climberSubsystem.setWantedState(ClimberSubsystem.WantedState.DEPLOY)),
+     climberSubsystem::hasDeployed
+   ));
 
 
     driverController
@@ -325,18 +325,7 @@ public class RobotContainer {
   }
 
   private void configureStreamDeckBindings() {
-    // streamDeckController
-    // .button(1)
-    // .onTrue(
-    // Commands.runOnce(
-    // () -> {
-    // questNavSubsystem.resetPose(
-    // swerve.getLocalizer().getCoarseFieldPose(Timer.getFPGATimestamp()),
-    // true
-    // );
-    // }
-    // )
-    // );
+    
   }
 
   public void configureTesterBindings() {
