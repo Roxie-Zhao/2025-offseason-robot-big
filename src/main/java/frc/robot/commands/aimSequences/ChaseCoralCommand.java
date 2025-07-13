@@ -23,6 +23,7 @@ public class ChaseCoralCommand extends Command {
   private double forwardVel = 0.0;
   private double turnVel = 0.0;
   private Integer targetCoralId = null;
+
   public ChaseCoralCommand(Swerve swerve) {
     this.swerve = swerve;
     addRequirements(swerve);
@@ -107,17 +108,15 @@ public class ChaseCoralCommand extends Command {
       turnVel = 0.0;
     }
 
-    // build field‐relative velocity vector
-    double vx = forwardVel * lastDirection.getCos();
-    double vy = forwardVel * lastDirection.getSin();
     swerve.runTwist(
-        ChassisSpeeds.fromFieldRelativeSpeeds(
-            vx,
-            vy,
-            turnVel,
-            robotPose.getRotation()
+        new ChassisSpeeds(
+            forwardVel,
+            0.0,
+            turnVel
         )
     );
+
+    System.out.println("Currently in state " + state.toString() + "  Chasing Id " + targetCoralId);
   }
 
   @Override
@@ -127,7 +126,6 @@ public class ChaseCoralCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    // finish if we've been blind too long
     return blindTimer.update(
         state == State.BLIND_CHASING,
         ChaseCoralCommandParamsNT.blindChaseMaxTimeSeconds.getValue()
@@ -143,9 +141,9 @@ public class ChaseCoralCommand extends Command {
     static final double driveKd = 0.1;
     static final double turnKp = 6.0;
     static final double turnKi = 0.0;
-    static final double turnKd = 0.2;
+    static final double turnKd = 0.3;
     static final double activeChaseMaxVelocityMps = 2.5;
-    static final double blindChaseMaxTimeSeconds = 0.3;
+    static final double blindChaseMaxTimeSeconds = 0.0;
     static final double blindChaseMaxVelocityMps = 1.5;
   }
 }

@@ -94,7 +94,7 @@ public class CoralRecorder {
     CoralInfo nearest = null;
     double minDistance = Double.MAX_VALUE;
     for (CoralInfo info : coralInfos) {
-      if (info.getConfidence() <= CoralRecorderParamsNT.confidenceThreshold.getValue()) continue;
+      if (info.getConfidence() < CoralRecorderParamsNT.confidenceThreshold.getValue()) continue;
       double distance = info.getTranslation().getDistance(pRobot);
       if (distance < minDistance) {
         minDistance = distance;
@@ -108,7 +108,7 @@ public class CoralRecorder {
 
   public Optional<CoralInfo> getCoralById(int id) {
     for(CoralInfo info : coralInfos) {
-      if (info.getId() == id) return Optional.of(info);
+      if (info.getId() == id && info.getConfidence() >= CoralRecorderParamsNT.confidenceThreshold.getValue()) return Optional.of(info);
     }
     return Optional.empty();
   }
