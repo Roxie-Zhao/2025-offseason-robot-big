@@ -6,7 +6,6 @@ import frc.robot.subsystems.superstructure.SuperstructurePose.Preset;
 import frc.robot.RobotConstants.IntakeConstants;
 import frc.robot.RobotConstants.EndEffectorArmConstants;
 import java.util.function.DoubleSupplier;
-import frc.robot.subsystems.superstructure.SuperstructureStateData.SuperstructureStateDataBuilder;
 
 @Getter
 @RequiredArgsConstructor
@@ -22,6 +21,7 @@ public enum SuperstructureState {
     //TODO: L1_intake_side
     L1_INTAKE_SIDE(createState(Preset.L1_INTAKE_SIDE)),
     L1_INTAKE_SIDE_EJECT(createIntakeState(L1_INTAKE_SIDE, () -> IntakeConstants.SHOOT_VOLTAGE.get())),
+    L1_INTAKE_SIDE_DOWN(createEEState(Preset.L1_INTAKE_SIDE_DOWN, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE_L1.get())),
     L1_SHOOT_SIDE(createState(Preset.L1_SHOOT_SIDE)),
     L1_SHOOT_SIDE_EJECT(createEEState(L1_SHOOT_SIDE, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE_L1.get())),
 
@@ -32,6 +32,9 @@ public enum SuperstructureState {
     L3_EJECT(createEEState(L3, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
     L4(createState(Preset.L4)),
     L4_EJECT(createEEState(L4, () -> EndEffectorArmConstants.CORAL_SHOOT_VOLTAGE.get())),
+
+    // L1 positions
+    L1(createState(Preset.L1_SHOOT_SIDE)),
 
     // Net scoring positions
     NET_SCORE(createState(Preset.NET_SCORE)),

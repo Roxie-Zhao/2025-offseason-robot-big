@@ -13,14 +13,11 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.swing.text.html.Option;
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static lib.ironpulse.math.MathTools.epsilonEquals;
 import static lib.ironpulse.math.MathTools.toAngle;
@@ -52,7 +49,29 @@ public class CoralRecorder {
       new Translation2d(1.807, 8.005)
   );
   public static Obstacle2d kBlueRightAutoCoralRegion = new PolygonObstacle2d(
+      new Translation2d(0.000, FieldConstants.fieldWidth - 6.140),
+      new Translation2d(1.906, FieldConstants.fieldWidth - 5.270),
+      new Translation2d(3.467, FieldConstants.fieldWidth - 5.270),
+      new Translation2d(7.538, FieldConstants.fieldWidth - 5.270),
+      new Translation2d(7.538, FieldConstants.fieldWidth - 8.024),
+      new Translation2d(1.807, FieldConstants.fieldWidth - 8.005)
+  );
 
+  public static Obstacle2d kRedLeftAutoCoralRegion = new PolygonObstacle2d(
+      new Translation2d(FieldConstants.fieldLength - 0.000, 6.140),
+      new Translation2d(FieldConstants.fieldLength - 1.906, 5.270),
+      new Translation2d(FieldConstants.fieldLength - 3.467, 5.270),
+      new Translation2d(FieldConstants.fieldLength - 7.538, 5.270),
+      new Translation2d(FieldConstants.fieldLength - 7.538, 8.024),
+      new Translation2d(FieldConstants.fieldLength - 1.807, 8.005)
+  );
+  public static Obstacle2d kRedRightAutoCoralRegion = new PolygonObstacle2d(
+      new Translation2d(FieldConstants.fieldLength - 0.000, FieldConstants.fieldWidth - 6.140),
+      new Translation2d(FieldConstants.fieldLength - 1.906, FieldConstants.fieldWidth - 5.270),
+      new Translation2d(FieldConstants.fieldLength - 3.467, FieldConstants.fieldWidth - 5.270),
+      new Translation2d(FieldConstants.fieldLength - 7.538, FieldConstants.fieldWidth - 5.270),
+      new Translation2d(FieldConstants.fieldLength - 7.538, FieldConstants.fieldWidth - 8.024),
+      new Translation2d(FieldConstants.fieldLength - 1.807, FieldConstants.fieldWidth - 8.005)
   );
 
   public int currentId = 0;
@@ -101,7 +120,7 @@ public class CoralRecorder {
       );
     } else {
       // does not have any near coral, create a new one
-      if(filterRegion == null || filterRegion.isInside(loc)) {
+      if (filterRegion == null || filterRegion.isInside(loc)) {
         CoralInfo info = new CoralInfo(
             currentId++, loc, 0.0, CoralRecorderParamsNT.confidenceStart.getValue(), true
         );
@@ -128,8 +147,9 @@ public class CoralRecorder {
   }
 
   public Optional<CoralInfo> getCoralById(int id) {
-    for(CoralInfo info : coralInfos) {
-      if (info.getId() == id && info.getConfidence() >= CoralRecorderParamsNT.confidenceThreshold.getValue()) return Optional.of(info);
+    for (CoralInfo info : coralInfos) {
+      if (info.getId() == id && info.getConfidence() >= CoralRecorderParamsNT.confidenceThreshold.getValue())
+        return Optional.of(info);
     }
     return Optional.empty();
   }

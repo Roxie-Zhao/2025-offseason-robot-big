@@ -1,9 +1,11 @@
 package frc.robot.subsystems.indicator;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.LoggedTracer;
 import lombok.Getter;
+import org.littletonrobotics.AllianceFlipUtil;
 import org.littletonrobotics.junction.Logger;
 
 public class IndicatorSubsystem extends SubsystemBase {
@@ -47,7 +49,12 @@ public class IndicatorSubsystem extends SubsystemBase {
 
     private void resetLed() {
         if (!timer.hasElapsed(1.0)) return;
-        setPattern(IndicatorIO.Patterns.NORMAL);
+        if(DriverStation.isDisabled()) {
+            if(AllianceFlipUtil.shouldFlip()) setPattern(IndicatorIO.Patterns.RED_ALLIANCE);
+            else setPattern(IndicatorIO.Patterns.BLUE_ALLIANCE);
+        } else {
+            setPattern(IndicatorIO.Patterns.NORMAL);
+        }
     }
 
     public void reset() {

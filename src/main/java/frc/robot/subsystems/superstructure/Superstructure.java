@@ -1,10 +1,12 @@
 package frc.robot.subsystems.superstructure;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.RobotStateRecorder;
 import frc.robot.commands.aimSequences.AimGoalSupplier;
 import frc.robot.subsystems.superstructure.elevator.ElevatorSubsystem;
@@ -21,8 +23,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import static frc.robot.RobotConstants.ElevatorConstants.FLYBY_HEIGHT;
-import static frc.robot.subsystems.superstructure.SuperstructureState.L4;
-import static frc.robot.subsystems.superstructure.SuperstructureState.NET_SCORE;
+import static frc.robot.subsystems.superstructure.SuperstructureState.*;
 
 import java.util.*;
 import java.util.function.DoubleSupplier;
@@ -123,6 +124,8 @@ public class Superstructure extends SubsystemBase {
             addEdge(from, SuperstructureState.AVOID, true, false);
         }
 
+        addEdge(L1_INTAKE_SIDE, IDLE, false, false);
+        addEdge(L1_INTAKE_SIDE_EJECT, IDLE, false, false);
 
         setDefaultCommand(
                 runGoal(() -> {
@@ -183,7 +186,7 @@ public class Superstructure extends SubsystemBase {
         elevator.periodic();
 
         //simulated gamepiece tracking
-        if (!RobotBase.isReal()) {
+        if (Robot.isSimulation()) {
             if (simIntakeTimer.update(atGoal() && state == SuperstructureState.CORAL_GROUND_INTAKE)) {
                 intake.setIndexRollerHasCoral(false);
                 endEffectorArm.setHasCoral(true);

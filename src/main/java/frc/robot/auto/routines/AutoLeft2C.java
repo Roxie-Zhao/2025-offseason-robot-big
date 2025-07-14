@@ -3,7 +3,6 @@ package frc.robot.auto.routines;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -18,7 +17,6 @@ import frc.robot.utils.CoralRecorder;
 import lib.ironpulse.command.DecisionTree;
 import lib.ironpulse.utils.Logging;
 import org.littletonrobotics.AllianceFlipUtil;
-import org.littletonrobotics.junction.AutoLogOutput;
 
 import java.util.Set;
 
@@ -41,7 +39,12 @@ public class AutoLeft2C extends AutoRoutine {
   private void reset() {
     idxCoral = 0;
     hasSeenCoral = false;
-//    RobotStateRecorder.setCoralFilterRegion(AllianceFlipUtil.shouldFlip() ? null : null);
+    RobotStateRecorder.setCoralFilterRegion(null);
+//    RobotStateRecorder.setCoralFilterRegion(
+//        AllianceFlipUtil.shouldFlip()
+//            ? CoralRecorder.kRedLeftAutoCoralRegion
+//            : CoralRecorder.kBlueLeftAutoCoralRegion
+//    );
   }
 
   private void advanceCoralIdx() {
@@ -104,8 +107,12 @@ public class AutoLeft2C extends AutoRoutine {
 
     var driveToBackoffPoint = sequence(
         print("Driving To Backoff Point"),
-        driveToBackoffPoint(true)
-    ).unless(() -> hasSeenCoral || AutoActions.hasCoralAtEE());
+        deadline(
+            driveToBackoffPoint(true),
+            intake()
+        )
+    )
+        .unless(() -> hasSeenCoral || AutoActions.hasCoralAtEE());
 
     var score = sequence(
         print("Scoring"),
@@ -114,8 +121,10 @@ public class AutoLeft2C extends AutoRoutine {
             parallel(
                 driveToSelectedTarget(),
                 sequence(
-                    intake().onlyIf(() -> !AutoActions.hasCoralAtEE()),
-                    waitUntil(AutoActions::hasCoralAtEE),
+                    intake()
+                        .onlyIf(() -> !AutoActions.hasCoralAtEE())
+                        .until(AutoActions::hasCoralAtEE),
+                    print("Coral At EE, Prepare"),
                     prepare()
                 )
             ),
@@ -142,21 +151,21 @@ public class AutoLeft2C extends AutoRoutine {
     tree.addDecision(getCoral, score, () -> hasSeenCoral || hasCoralAtEE());
 
     // branch 2: does not have coral, drive to backoff point and retry
+    // near intake end, drive to backoff
     tree.addDecision(getCoral, driveToBackoffPoint, () -> !hasCoralAtEE() && !hasSeenCoral);
     tree.addDecision(driveToBackoffPoint, getCoral, () -> !hasCoralAtEE() && !hasSeenCoral);
     tree.addDecision(driveToBackoffPoint, score, () -> hasSeenCoral || hasCoralAtEE());
 
     // go back to get coral if not reached target count
-    tree.addDecision(score, getCoral, () -> this.idxCoral < 2);
+    tree.addDecision(score, getCoral, () -> this.idxCoral < 5);
 
     // end if scored enough coral
-    tree.addDecision(score, end, () -> this.idxCoral >= 2);
+    tree.addDecision(score, end, () -> this.idxCoral >= 5);
 
     return deadline(
         tree.toCommand(),
         Commands.run(() -> {
-          System.out.println(hasSeenCoral);
-          if(!hasSeenCoral && superstructure.hasIndexedCoral()) hasSeenCoral = true;
+          if (!hasSeenCoral && superstructure.hasIndexedCoral()) hasSeenCoral = true;
         })
     );
   }

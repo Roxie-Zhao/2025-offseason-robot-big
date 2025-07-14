@@ -1,7 +1,6 @@
 package frc.robot.subsystems.superstructure;
 
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
 import org.littletonrobotics.LoggedTunableNumber;
 
@@ -45,8 +44,9 @@ public record SuperstructurePose(DoubleSupplier elevatorHeight, DoubleSupplier e
         CORAL_STOW("Coral Stow",        0.53,   135,   132, 60),  // alternate: 110
         ALGAE_STOW("Algae Stow",        0.6,    0,     60,  60),   // alternate: 80
         START("Start",                  0.5,    0,     132),
-        L1_INTAKE_SIDE("L1 Intake Side", 0.01,   0,    45),
         L1_SHOOT_SIDE("L1 Shoot Side",  0.3,   200,   132,  60),   // alternate: 40
+        L1_INTAKE_SIDE("L1 Intake Side", 0.01,   0,    50),
+        L1_INTAKE_SIDE_DOWN("L1 Intake Side Down", 0.01,   0,    50),
         L2("L2",                        0.16,  190,   132, 60),  // alternate: 110
         L3("L3",                        0.53,  185,   132, 60),  // alternate: 110
         L4("L4",                        1.445, 225,   132, 60),  // alternate: 110

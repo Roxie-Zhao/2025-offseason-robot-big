@@ -47,7 +47,7 @@ public class AutoActions {
       Rotation2d.fromDegrees(144)
   );
   private static final Pose2d kLeftBackoff = new Pose2d(
-      new Translation2d(4.0, 6.2),
+      new Translation2d(2.7, 6.2),
       Rotation2d.fromDegrees(170)
   );
   private static final Pose2d kLeftEnd = new Pose2d(
@@ -67,7 +67,7 @@ public class AutoActions {
       Rotation2d.fromDegrees(-144)
   );
   private static final Pose2d kRightBackoff = new Pose2d(
-      new Translation2d(4.0, 1.8),
+      new Translation2d(2.7, 1.8),
       Rotation2d.fromDegrees(180.0)
   );
   private static final Pose2d kRightEnd = new Pose2d(
@@ -185,10 +185,10 @@ public class AutoActions {
           ? List.of(backoffAngle, decisionAngle)
           : List.of(decisionAngle);
 
-      PathPlannerPath path = generatePath(waypoints, rotationTargets, 3.5, 5.0, 0.0);
+      PathPlannerPath path = generatePath(waypoints, rotationTargets, 4.0, 7.0, 0.0);
       return Commands.deadline(
           followPath(path),
-          applySwerveLimit().repeatedly()
+          applySwerveLimit()
       );
     });
   }
@@ -229,7 +229,7 @@ public class AutoActions {
         },
         new PPHolonomicDriveController(
             new PIDConstants(5.5, 0.0, 0.1),
-            new PIDConstants(4.5, 0.0, 0.1),
+            new PIDConstants(3.0, 0.0, 0.1),
             RobotConstants.LOOPER_DT
         ),
         RobotConstants.AUTO_ROBOT_CONFIG,
@@ -350,7 +350,7 @@ public class AutoActions {
   }
 
   public static Command applySwerveLimit() {
-    return Commands.runOnce(() -> {
+    return Commands.run(() -> {
       double elevatorHeight = superstructure.getElevatorPosition();
       double startLimitHeight = AutoParamsNT.TrajectoryLimitStartHeight.getValue();
       double maxVel = AutoParamsNT.TrajectoryMaxLinVelMps.getValue();
@@ -381,7 +381,9 @@ public class AutoActions {
               ))
               .build()
       );
-    });
+    }).finallyDo(
+        () -> swerve.setSwerveLimitDefault()
+    );
   }
 
   // ----------------------------------- Helpers ------------------------------------------------
@@ -390,6 +392,12 @@ public class AutoActions {
         RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d(),
         DestinationSupplier.getInstance().getCurrentBranch()
     );
+  }
+
+  public static boolean isNearIntakeEnd(boolean isLeft) {
+    var poseWorldRobot =  RobotStateRecorder.getPoseWorldRobotCurrent();
+    var intakeEndPoint = AllianceFlipUtil.apply(isLeft ? kLeftIntakePoint : kRightIntakePoint);
+    return poseWorldRobot.toPose2d().getTranslation().minus(intakeEndPoint.getTranslation()).getNorm() < 0.50;
   }
 
   private static boolean isInReefDangerZone() {

@@ -134,7 +134,7 @@ public class ElevatorIOReal implements ElevatorIO {
         inputs.currentAcceleration = isGoingUp ? motionAccelerationUp.get() : motionAccelerationDown.get();
         inputs.currentCruiseVelocity = isGoingUp ? motionCruiseVelocityUp.get() : motionCruiseVelocityDown.get();
         inputs.currentJerk = isGoingUp ? motionJerkUp.get() : motionJerkDown.get();
-        if (RobotConstants.TUNING) {
+        if (false) {
             slot0Configs.kA = ElevatorGainsClass.ELEVATOR_KA.get();
             slot0Configs.kS = ElevatorGainsClass.ELEVATOR_KS.get();
             slot0Configs.kV = ElevatorGainsClass.ELEVATOR_KV.get();

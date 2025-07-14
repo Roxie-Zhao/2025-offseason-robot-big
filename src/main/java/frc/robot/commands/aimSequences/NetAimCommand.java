@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotConstants;
 import frc.robot.RobotStateRecorder;
 import frc.robot.subsystems.indicator.IndicatorIO;
+import frc.robot.subsystems.indicator.IndicatorSubsystem;
 import lib.ironpulse.swerve.Swerve;
 import lib.ironpulse.swerve.SwerveLimit;
 import lib.ironpulse.utils.Logging;
@@ -29,14 +30,16 @@ import static lib.ironpulse.math.MathTools.epsilonEquals;
 public class NetAimCommand extends Command {
   private final static String kTag = "Commands/NetAimCommand";
   private final Swerve swerve;
+  private final IndicatorSubsystem indicator;
   private final DoubleSupplier yVelocitySupplier;
   private PIDController xController;
   private PIDController rotationController;
   private Pose2d poseWorldRobot, poseWorldTarget, velocityWorldRobot;
   private TimeDelayedBoolean imuStable = new TimeDelayedBoolean(0.5);
 
-  public NetAimCommand(Swerve swerve, DoubleSupplier yVelocitySupplier) {
+  public NetAimCommand(Swerve swerve, IndicatorSubsystem indicatorSubsystem, DoubleSupplier yVelocitySupplier) {
     this.swerve = swerve;
+    this.indicator = indicatorSubsystem;
     this.yVelocitySupplier = yVelocitySupplier;
 
     xController = new PIDController(
@@ -48,7 +51,7 @@ public class NetAimCommand extends Command {
         NetAimCommandParamsNT.rotationKp.getValue(),
         NetAimCommandParamsNT.rotationKi.getValue(),
         NetAimCommandParamsNT.rotationKd.getValue());
-    addRequirements(swerve);
+    addRequirements(swerve, indicatorSubsystem);
   }
 
   @Override
@@ -62,7 +65,6 @@ public class NetAimCommand extends Command {
     rotationController.setI(NetAimCommandParamsNT.rotationKi.getValue());
     rotationController.setIZone(NetAimCommandParamsNT.rotationKiZone.getValue());
     rotationController.setD(NetAimCommandParamsNT.rotationKd.getValue());
-
 
     // calculate destination
     poseWorldRobot = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
@@ -119,6 +121,8 @@ public class NetAimCommand extends Command {
     Logger.recordOutput(kTag + "/destinationPose", poseWorldTarget);
     Logger.recordOutput(kTag + "/thetaRT", thetaRT);
     Logger.recordOutput(kTag + "/maxTranslationVelocityMps", maxTranslationVelocityMps);
+
+    indicator.setPattern(IndicatorIO.Patterns.AIMING);
   }
 
   @Override
@@ -151,6 +155,7 @@ public class NetAimCommand extends Command {
     System.out.println("Finished!");
     swerve.setSwerveLimitDefault();
     swerve.runStop();
+    indicator.setPattern(IndicatorIO.Patterns.AIMED);
   }
 
   @NTParameter(tableName = "Params/" + kTag)

@@ -112,7 +112,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
         inputs.targetAngleDeg = targetAngleDeg;
         inputs.motorVolts = motorVolts.getValueAsDouble();
 
-        if (RobotConstants.TUNING) {
+        if (false) {
             inputs.intakePivotKP = IntakePivotGainsClass.INTAKE_PIVOT_KP.get();
             inputs.intakePivotKI = IntakePivotGainsClass.INTAKE_PIVOT_KI.get();
             inputs.intakePivotKD = IntakePivotGainsClass.INTAKE_PIVOT_KD.get();

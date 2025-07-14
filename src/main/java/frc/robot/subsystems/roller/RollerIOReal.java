@@ -48,7 +48,6 @@ public class RollerIOReal implements RollerIO {
         config.CurrentLimits.StatorCurrentLimit = statorCurrentLimitAmps;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
         motor.getConfigurator().apply(config);
-
         motor.clearStickyFaults();
 
         // Configure follower motor if ID is provided (not -1)

@@ -275,7 +275,10 @@ public class RobotContainer {
             new BlocklessEitherCommand(
               // algae
               Commands.parallel(
-                new NetAimCommand(swerve, () -> driverController.getLeftX() * 4.5),
+                Commands.deadline(
+                    new NetAimCommand(swerve, indicatorSubsystem, () -> driverController.getLeftX() * 4.5),
+                    AutoActions.applySwerveLimit()
+                ),
                 Commands.waitUntil(() -> {
                   Pose2d poseWorldRobot = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
                   return AimGoalSupplier.isNearNet(poseWorldRobot);
@@ -303,14 +306,19 @@ public class RobotContainer {
               Commands.deadline(
                 Commands.waitUntil(()->driverController.rightTrigger().getAsBoolean()),
                 superstructure.runGoal(() -> SuperstructureState.PROCESSOR_SCORE))
-                  
                   .andThen(
                     Commands.runOnce(() -> processorEjectTimer.reset())
                     .andThen(superstructure.runGoal(() -> SuperstructureState.PROCESSOR_SCORE_EJECT)
                     .until(() -> processorEjectTimer.update(!superstructure.hasAlgae())))
                   ),
-              createScoringCommand(false, SuperstructureState.L3),
-              () -> superstructure.hasAlgae()
+              new BlocklessEitherCommand(
+                  createScoringCommand(false, SuperstructureState.L3),
+                  superstructure.runGoal(
+                      () -> driverController.rightTrigger().getAsBoolean() ? SuperstructureState.L1_INTAKE_SIDE_EJECT : SuperstructureState.L1_INTAKE_SIDE
+                  ),
+                  superstructure::hasCoral
+              ),
+              superstructure::hasAlgae
             ));
     driverController
         .back()
@@ -323,12 +331,14 @@ public class RobotContainer {
     driverController
         .rightTrigger()
         .whileTrue(
-            createScoringCommand(true, SuperstructureState.L3));
+            createScoringCommand(true, SuperstructureState.L3)
+                .onlyIf(superstructure::hasCoral)
+        );
     driverController
         .leftStick()
         .whileTrue(
             createScoringCommand(true, SuperstructureState.L2));
-    
+
     driverController.povUp().whileTrue(
       superstructure.runGoal(SuperstructureState.CORAL_L1_INTAKE)
     );
@@ -363,7 +373,7 @@ public class RobotContainer {
   }
 
   private void configureStreamDeckBindings() {
-    
+
   }
 
   public void configureTesterBindings() {

@@ -63,7 +63,6 @@ public class RobotStateRecorder extends TransformRecorder {
     Logger.recordOutput("RobotStateRecorder/velocityRobot", RobotStateRecorder.getVelocityRobotCurrent());
     Logger.recordOutput("RobotStateRecorder/velocityWorldRobot", RobotStateRecorder.getVelocityWorldRobotCurrent());
     Logger.recordOutput("RobotStateRecorder/corals", recorder.getCoralLocations());
-
     Logger.recordOutput("RobotStateRecorder/isInIntakeDangerZone", AutoActions.isInIntakeDangerZone());
   }
 

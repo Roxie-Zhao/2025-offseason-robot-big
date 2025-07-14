@@ -16,8 +16,8 @@ public interface IndicatorIO {
     default void reset() {}
 
     enum Patterns {
-        RED_ALLIANCE(new BreathingPattern(Color.kRed, 5.0)),
-        BLUE_ALLIANCE(new BreathingPattern(Color.kBlue, 5.0)),
+        RED_ALLIANCE(new BreathingPattern(Color.kRed, 1.0)),
+        BLUE_ALLIANCE(new BreathingPattern(Color.kBlue, 1.0)),
         NORMAL(new SolidColorPattern(Color.kBlue)),
 
         INTAKE(new BlinkingPattern(Color.kRed, 0.02)),
@@ -25,7 +25,7 @@ public interface IndicatorIO {
         AFTER_INTAKE(new BlinkingPattern(Color.kGreen, 0.2)),
 
         RESET_ODOM(new BlinkingPattern(Color.kPurple, 0.1)),
-        AIMING(new BlinkingPattern(Color.kYellow, 0.02)),
+        AIMING(new BlinkingPattern(Color.kBlue, 0.02)),
         AIMED(new BlinkingPattern(Color.kGreen, 0.1)),
 
         CLIMB_DEPLOYED(new BlinkingPattern(Color.kWhite, 0.02)),
