@@ -157,12 +157,12 @@ public class AutoLeft2C extends AutoRoutine {
     tree.addDecision(driveToBackoffPoint, score, () -> hasSeenCoral || hasCoralAtEE());
 
     // go back to get coral if not reached target count
-    tree.addDecision(score, getCoral, () -> this.idxCoral < 5);
+    tree.addDecision(score, getCoral, () -> this.idxCoral < 4);
 
     // end if scored enough coral
-    tree.addDecision(score, end, () -> this.idxCoral >= 5);
+    tree.addDecision(score, end, () -> this.idxCoral >= 4);
 
-    return deadline(
+    return deadline( 
         tree.toCommand(),
         Commands.run(() -> {
           if (!hasSeenCoral && superstructure.hasIndexedCoral()) hasSeenCoral = true;
