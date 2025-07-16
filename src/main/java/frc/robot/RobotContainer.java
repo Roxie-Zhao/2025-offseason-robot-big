@@ -13,14 +13,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.ReloadableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.auto.AutoActions;
-import frc.robot.auto.AutoLeft2C;
+import frc.robot.auto.AutoBuilder;
 import frc.robot.auto.AutoSelector;
 import frc.robot.commands.CoralIntakeAssistCommand;
 import frc.robot.commands.aimSequences.AimGoalSupplier;
@@ -65,7 +63,6 @@ import lib.ironpulse.swerve.sim.SwerveModuleIOSimpleSim;
 import lib.ironpulse.swerve.sjtu6.ImuIOPigeon;
 import lib.ironpulse.swerve.sjtu6.SwerveModuleIOSJTU6;
 import lib.ironpulse.utils.TimeDelayedBoolean;
-import lib.ntext.NTParameterRegistry;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -204,7 +201,6 @@ public class RobotContainer {
 
     // init auto actions
     AutoActions.init(swerve, superstructure, indicatorSubsystem, photonVisionSubsystem);
-    AutoSelector.getInstance().registerAuto("Left 2C", new AutoLeft2C());
 
     configureDriverBindings();
     configureStreamDeckBindings();
@@ -423,11 +419,6 @@ public class RobotContainer {
                 new ReefAimCommand(swerve, indicatorSubsystem)));
     testerController.back().onTrue(superstructure.toggleIntakePose());
 
-  }
-
-  public Command getAutonomousCommand() {
-    // return autoFile.runAuto(autoChooser.get());
-    return Commands.none();
   }
 
   public FieldConstants.AprilTagLayoutType getAprilTagLayoutType() {

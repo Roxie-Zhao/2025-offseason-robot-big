@@ -1,6 +1,7 @@
 package frc.robot.auto;
 
 import edu.wpi.first.math.Pair;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -18,8 +19,9 @@ public class AutoConfig {
     L4, L3, L2
   }
 
-  private AutoType autoType;
-  private ArrayList<Pair<ScoringLocation, ScoringLevel>> scoringTargets;
+  @Getter
+  private AutoType autoType = AutoType.DoNothing;
+  private ArrayList<Pair<ScoringLocation, ScoringLevel>> scoringTargets = new ArrayList<>();
 
   public AutoConfig withAutoType(AutoType autoType) {
     this.autoType = autoType;
@@ -33,5 +35,9 @@ public class AutoConfig {
 
   public Optional<Pair<ScoringLocation, ScoringLevel>> getScoringTarget(int idx) {
     return idx < scoringTargets.size() ? Optional.of(scoringTargets.get(idx)) : Optional.empty();
+  }
+
+  public int getCoralCount() {
+    return scoringTargets.size();
   }
 }

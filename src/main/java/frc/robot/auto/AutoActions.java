@@ -46,43 +46,50 @@ import static lib.ironpulse.math.MathTools.cross;
 import static lib.ironpulse.math.MathTools.toAngle;
 
 public class AutoActions {
-  private static final Pose2d kLeftIntakePoint = new Pose2d(
+  public static final Pose2d kLeftStartPose = new Pose2d(
+      new Translation2d(7.140, FieldConstants.fieldWidth - 0.50),
+      Rotation2d.kZero
+  );
+  public static final Pose2d kLeftIntakePoint = new Pose2d(
       new Translation2d(1.5, 6.7),
       Rotation2d.fromDegrees(144)
   );
-  private static final Pose2d kLeftBackoff = new Pose2d(
+  public static final Pose2d kLeftBackoff = new Pose2d(
       new Translation2d(2.79, 5.81),
       Rotation2d.fromDegrees(144)
   );
-  private static final Pose2d kLeftEnd = new Pose2d(
+  public static final Pose2d kLeftEnd = new Pose2d(
       new Translation2d(2.50, 5.3),
       Rotation2d.fromDegrees(180)
   );
-  private static final RotationTarget kLeftBackoffPointAngle = new RotationTarget(
+  public static final RotationTarget kLeftBackoffPointAngle = new RotationTarget(
       0.45, Rotation2d.fromDegrees(-10)
   );
-  private static final RotationTarget kLeftIntakePointAngle = new RotationTarget(
+  public static final RotationTarget kLeftIntakePointAngle = new RotationTarget(
       1.0, Rotation2d.fromDegrees(-26)
   );
 
-
-  private static final Pose2d kRightIntakePoint = new Pose2d(
+  public static final Pose2d kRightStartPose = new Pose2d(
+      new Translation2d(7.140, 0.50),
+      Rotation2d.kZero
+  );
+  public static final Pose2d kRightIntakePoint = new Pose2d(
       new Translation2d(1.5, 1.3),
       Rotation2d.fromDegrees(-144)
   );
-  private static final Pose2d kRightBackoff = new Pose2d(
+  public static final Pose2d kRightBackoff = new Pose2d(
       new Translation2d(2.79, FieldConstants.fieldWidth - 5.81),
       Rotation2d.fromDegrees(180.0)
   );
-  private static final Pose2d kRightEnd = new Pose2d(
+  public static final Pose2d kRightEnd = new Pose2d(
       new Translation2d(2.50, 2.7),
       Rotation2d.fromDegrees(180)
   );
 
-  private static final RotationTarget kRightBackoffPointAngle = new RotationTarget(
+  public static final RotationTarget kRightBackoffPointAngle = new RotationTarget(
       0.45, Rotation2d.fromDegrees(10)
   );
-  private static final RotationTarget kRightIntakePointAngle = new RotationTarget(
+  public static final RotationTarget kRightIntakePointAngle = new RotationTarget(
       1.0, Rotation2d.fromDegrees(26)
   );
 

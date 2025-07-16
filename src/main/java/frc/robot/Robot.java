@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.FieldConstants.Reef;
+import frc.robot.auto.AutoBuilder;
 import frc.robot.auto.AutoSelector;
 import frc.robot.commands.aimSequences.AimGoalSupplier;
 import frc.robot.utils.LoggedTracer;
@@ -87,11 +88,11 @@ public class Robot extends LoggedRobot {
 
     NTParameterRegistry.refresh();
     robotContainer.robotPeriodic();
+    AutoSelector.getInstance().updateAlerts();
   }
 
   @Override
   public void disabledInit() {
-    System.out.println(AimGoalSupplier.isInHexagonalReefDangerZone(new Pose2d()));
   }
 
   @Override
@@ -105,7 +106,8 @@ public class Robot extends LoggedRobot {
   @Override
   public void autonomousInit() {
     try {
-      autonomousCommand = AutoSelector.getInstance().getAutoCommand();
+      AutoBuilder.getInstance().setConfig(AutoSelector.getInstance().getAutoConfig());
+      autonomousCommand = AutoBuilder.getInstance().getAutoCommand();
     } catch (Exception e) {
       System.out.println("Autonomous command failed: " + e);
       e.printStackTrace();
