@@ -104,7 +104,7 @@ public class ImuIOPigeon implements ImuIO {
 
     @Override
     public void resetYawAngle(Rotation2d angle) {
-        pigeon.setYaw(angle.getMeasure());
+        pigeon.reset();
     }
 
     // Note: No need for startSyncThread() method since we use the shared sync thread from SwerveModuleIOSJTU6
