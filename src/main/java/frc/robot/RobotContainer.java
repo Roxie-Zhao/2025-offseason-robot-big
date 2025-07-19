@@ -260,14 +260,15 @@ public class RobotContainer {
     driverController.a().onTrue(superstructure.toggleIntakePose());
 
     //CLIMBER
-    driverController.povDown().whileTrue(
-        Commands.either(
-            Commands.run(() ->
-                climberSubsystem.setWantedState(ClimberSubsystem.WantedState.IDLE)),
-            Commands.run(() ->
-                climberSubsystem.setWantedState(ClimberSubsystem.WantedState.DEPLOY)),
-            climberSubsystem::hasDeployed
-        ));
+    driverController.povDown().toggleOnTrue(
+        Commands.parallel(
+            superstructure.runGoal(() -> SuperstructureState.IDLE),
+            Commands.either(
+                Commands.runOnce(() -> climberSubsystem.setWantedState(ClimberSubsystem.WantedState.IDLE)),
+                Commands.runOnce(() -> climberSubsystem.setWantedState(ClimberSubsystem.WantedState.DEPLOY)),
+                climberSubsystem::hasDeployed
+            ))
+    );
     driverController.povRight().onTrue(
         Commands.runOnce(climberSubsystem::forceClimb)
     );
@@ -383,7 +384,8 @@ public class RobotContainer {
   }
 
   public void configureTesterBindings() {
-    testerController.a().whileTrue(superstructure.runGoal(() -> SuperstructureState.CORAL_INDEXED_INTAKE));
+//    testerController.a().whileTrue(superstructure.runGoal(() -> SuperstructureState.CORAL_INDEXED_INTAKE));
+    testerController.a().onTrue(superstructure.runZero());
     testerController.y().whileTrue(
         superstructure.runGoal(() -> SuperstructureState.L4)
             .until(testerController.rightTrigger())
@@ -429,7 +431,6 @@ public class RobotContainer {
             .andThen(
                 new ReefAimCommand(swerve, indicatorSubsystem)));
     testerController.back().onTrue(superstructure.toggleIntakePose());
-
   }
 
   public void configureOthers() {
