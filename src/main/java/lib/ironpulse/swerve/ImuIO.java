@@ -9,7 +9,7 @@ public interface ImuIO {
     default void updateInputs(ImuIOInputs inputs) {
     }
 
-    default void resetYawAngle(Rotation2d angle) {}
+    default void reset() {}
 
 
     @AutoLog
