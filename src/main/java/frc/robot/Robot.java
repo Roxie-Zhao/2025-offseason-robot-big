@@ -65,6 +65,7 @@ public class Robot extends LoggedRobot {
     // early-stage initialization
     DriverStation.silenceJoystickConnectionWarning(true);
 
+
     // config watchdog
     try {
       Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
@@ -78,6 +79,9 @@ public class Robot extends LoggedRobot {
 
     powerDistribution.clearStickyFaults();
     robotContainer = new RobotContainer();
+
+    // logger
+    WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
     // warm-up path-following
     FollowPathCommand.warmupCommand().schedule();
