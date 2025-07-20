@@ -87,8 +87,8 @@ public class AutoActions {
   );
 
   public static final double kClearanceAnglePosition = 0.70;
-  public static final Rotation2d kLeftClearanceAngle = Rotation2d.fromDegrees(13 + 180.0);
-  public static final Rotation2d kRightClearanceAngle = Rotation2d.fromDegrees(-13 + 180.0);
+  public static final Rotation2d kLeftClearanceAngle = Rotation2d.fromDegrees(-13 + 180.0);
+  public static final Rotation2d kRightClearanceAngle = Rotation2d.fromDegrees(13 + 180.0);
 
 
   static {
