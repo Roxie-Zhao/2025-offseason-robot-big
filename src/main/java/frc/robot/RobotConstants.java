@@ -582,7 +582,7 @@ public final class RobotConstants {
       static final double algaeHoldVoltage = 1.5;
       static final double coralShootVoltage = -12.0;
       static final double coralShootVoltageL1 = -2.0;
-      static final double algaeNetShootVoltage = -15.0;
+      static final double algaeNetShootVoltage = -11.0;
       static final double algaeProcessorShootVoltage = -4.0;
       static final double coralShootDelayTime = 0.2;
 

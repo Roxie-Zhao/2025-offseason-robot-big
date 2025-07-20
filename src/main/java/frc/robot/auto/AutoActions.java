@@ -64,9 +64,6 @@ public class AutoActions {
       new Translation2d(2.50, 5.3),
       Rotation2d.fromDegrees(180)
   );
-  public static final RotationTarget kLeftClearanceAngle = new RotationTarget(
-      0.70, Rotation2d.fromDegrees(-17)
-  );
 
   public static final Pose2d kRightStartPose = new Pose2d(
       new Translation2d(7.140, 0.50),
@@ -89,9 +86,10 @@ public class AutoActions {
       Rotation2d.fromDegrees(-180)
   );
 
-  public static final RotationTarget kRightClearanceAngle = new RotationTarget(
-    0.70, Rotation2d.fromDegrees(17)
-);
+  public static final double kClearanceAnglePosition = 0.70;
+  public static final Rotation2d kLeftClearanceAngle = Rotation2d.fromDegrees(13 + 180.0);
+  public static final Rotation2d kRightClearanceAngle = Rotation2d.fromDegrees(-13 + 180.0);
+
 
   static {
     Logger.recordOutput("Auto/LeftStartPose", kLeftStartPose);
@@ -106,8 +104,6 @@ public class AutoActions {
     Logger.recordOutput("Auto/RightBackoff", kRightBackoff);
     Logger.recordOutput("Auto/RightEnd", kRightEnd);
   }
-
-
 
   public static Swerve swerve;
   public static Superstructure superstructure;
@@ -165,8 +161,8 @@ public class AutoActions {
 
   public static Command driveForwardBlind(double vx, double timeS) {
     return run(() -> {
-          swerve.runTwist(new ChassisSpeeds(vx, 0.0, 0.0));
-        }, swerve)
+      swerve.runTwist(new ChassisSpeeds(vx, 0.0, 0.0));
+    }, swerve)
         .withTimeout(Seconds.of(timeS))
         .finallyDo(swerve::runStop);
   }
@@ -210,16 +206,17 @@ public class AutoActions {
           Pose2d current = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
           Pose2d clearance = AllianceFlipUtil.apply(isLeft ? kLeftClearance : kRightClearance);
           Pose2d decision = AllianceFlipUtil.apply(isLeft ? kLeftIntakePoint : kRightIntakePoint);
-          RotationTarget clearanceAngle = isLeft ? kLeftClearanceAngle : kRightClearanceAngle;
+          Rotation2d clearanceAngle = AllianceFlipUtil.apply(isLeft ? kLeftClearanceAngle : kRightClearanceAngle);
+          RotationTarget clearanceTarget = new RotationTarget(kClearanceAnglePosition, clearanceAngle);
 
           List<Pose2d> waypoints = shouldClear
               ? List.of(current, clearance, decision)
               : List.of(current, decision);
           List<RotationTarget> rotationTargets = shouldClear
-              ? List.of(clearanceAngle)
+              ? List.of(clearanceTarget)
               : List.of();
 
-          PathPlannerPath path = generatePath(waypoints, rotationTargets, 4.5, 10.0, 0.0);
+          PathPlannerPath path = generatePath(waypoints, rotationTargets, 4.5, 12.0, 0.0);
           return deadline(
               followPath(path),
               applySwerveLimit()
@@ -541,7 +538,7 @@ public class AutoActions {
     static final double LeftTriangleX = 2.1;
     static final double LeftTriangleY = 6.6;
     static final double BoundaryOffset = 0.0;
-    static final double StopLookforward = 10.0;
+    static final double StopLookforward = 15.0;
   }
 
 }

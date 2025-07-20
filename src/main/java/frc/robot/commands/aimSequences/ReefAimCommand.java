@@ -312,12 +312,12 @@ public class ReefAimCommand extends Command {
     static final double xStationaryMetersPerSecond = 0.35;
     static final double yStationaryMetersPerSecond = 0.25;
 
-    static final double xOnTargetFastMeter = 0.045;
-    static final double yOnTargetFastMeter = 0.025;
+    static final double xOnTargetFastMeter = 0.05;
+    static final double yOnTargetFastMeter = 0.03;
     static final double xStationaryFastMetersPerSecond = 0.40;
-    static final double yStationaryFastMetersPerSecond = 0.25;
+    static final double yStationaryFastMetersPerSecond = 0.30;
 
-    static final double imuStationaryDeg = 3.0;
+    static final double imuStationaryDeg = 3.3;
     static final double rotationOnTargetToleranceDegree = 1.5;
     static final double rotationOnTargetVelocityToleranceDegreesPerSecond = 15.0;
     static final double rotationAdjustmentMaxDegree = 0.0;
