@@ -172,9 +172,9 @@ public class NetAimCommand extends Command {
     static final double xKiZone = 0.5;
     static final double xKd = 0.1;
     static final double translationVelocityMaxFar = 3.0;
-    static final double translationVelocityMaxNear = 2.0;
+    static final double translationVelocityMaxNear = 1.8;
     static final double translationParamsChangeDistance = 2.0;
-    static final double translationAccelerationMax = 12.0;
+    static final double translationAccelerationMax = 10.0;
 
     static final double translationOnTargetMeters = 0.05;
     static final double translationStationaryMetersPerSecond = 0.15;

@@ -292,7 +292,7 @@ public class ReefAimCommand extends Command {
     static final double translationParamsChangeDistance = 1.5;
     static final double translationAccelerationMax = 14.0;
 
-    static final double translationFastKp = 3.35;
+    static final double translationFastKp = 3.37;
     static final double translationFastKi = 0.0;
     static final double translationFastKiZone = 0.00;
     static final double translationFastKd = 0.2;
@@ -307,17 +307,17 @@ public class ReefAimCommand extends Command {
     static final double rotationVelocityMax = 600.0;
     static final double rotationAccelerationMax = 2000.0;
 
-    static final double xOnTargetMeter = 0.03;
+    static final double xOnTargetMeter = 0.028;
     static final double yOnTargetMeter = 0.015;
-    static final double xStationaryMetersPerSecond = 0.35;
-    static final double yStationaryMetersPerSecond = 0.25;
+    static final double xStationaryMetersPerSecond = 0.30;
+    static final double yStationaryMetersPerSecond = 0.20;
 
     static final double xOnTargetFastMeter = 0.05;
-    static final double yOnTargetFastMeter = 0.03;
+    static final double yOnTargetFastMeter = 0.035;
     static final double xStationaryFastMetersPerSecond = 0.40;
     static final double yStationaryFastMetersPerSecond = 0.30;
 
-    static final double imuStationaryDeg = 3.3;
+    static final double imuStationaryDeg = 3.0;
     static final double rotationOnTargetToleranceDegree = 1.5;
     static final double rotationOnTargetVelocityToleranceDegreesPerSecond = 15.0;
     static final double rotationAdjustmentMaxDegree = 0.0;
