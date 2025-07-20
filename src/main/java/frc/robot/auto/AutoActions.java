@@ -54,11 +54,11 @@ public class AutoActions {
   );
   public static final Pose2d kLeftIntakePoint = new Pose2d(
       new Translation2d(1.35, 6.80),
-      Rotation2d.fromDegrees(144)
+      Rotation2d.fromDegrees(135)
   );
   public static final Pose2d kLeftBackoff = new Pose2d(
-      new Translation2d(2.79, 6.01),
-      Rotation2d.fromDegrees(144)
+      new Translation2d(3.20, 5.90),
+      Rotation2d.fromDegrees(160)
   );
   public static final Pose2d kLeftEnd = new Pose2d(
       new Translation2d(2.50, 5.3),
@@ -78,16 +78,30 @@ public class AutoActions {
   );
   public static final Pose2d kRightIntakePoint = new Pose2d(
       new Translation2d(1.35, FieldConstants.fieldWidth - 6.80),
-      Rotation2d.fromDegrees(-144)
+      Rotation2d.fromDegrees(-135)
   );
   public static final Pose2d kRightBackoff = new Pose2d(
-      new Translation2d(2.79, FieldConstants.fieldWidth - 6.01),
-      Rotation2d.fromDegrees(-144)
+      new Translation2d(3.20, FieldConstants.fieldWidth - 5.90),
+      Rotation2d.fromDegrees(-160)
   );
   public static final Pose2d kRightEnd = new Pose2d(
       new Translation2d(2.50, FieldConstants.fieldWidth - 5.3),
       Rotation2d.fromDegrees(-180)
   );
+
+  static {
+    Logger.recordOutput("Auto/LeftStartPose", kLeftStartPose);
+    Logger.recordOutput("Auto/LeftClearance", kLeftClearance);
+    Logger.recordOutput("Auto/LeftIntakePoint", kLeftIntakePoint);
+    Logger.recordOutput("Auto/LeftBackoff", kLeftBackoff);
+    Logger.recordOutput("Auto/LeftEnd", kLeftEnd);
+
+    Logger.recordOutput("Auto/RightStartPose", kRightStartPose);
+    Logger.recordOutput("Auto/RightClearance", kRightClearance);
+    Logger.recordOutput("Auto/RightIntakePoint", kRightIntakePoint);
+    Logger.recordOutput("Auto/RightBackoff", kRightBackoff);
+    Logger.recordOutput("Auto/RightEnd", kRightEnd);
+  }
 
   public static final RotationTarget kRightClearanceAngle = new RotationTarget(
       0.70, Rotation2d.fromDegrees(13)
@@ -225,7 +239,7 @@ public class AutoActions {
             Meters.of(0.10),
             Degrees.of(2.0)
         )
-    );
+    ).withTimeout(5.0);
   }
 
   public static Command driveToEndPoint(boolean isLeft) {
@@ -284,6 +298,7 @@ public class AutoActions {
         .runOnce(() -> destinationSupplier.setCurrentGamePiece(DestinationSupplier.GamePiece.ALGAE_INTAKING))
         .andThen(
             parallel(
+                driveToSelectedTarget(),
                 superstructure
                     .runGoal(() -> DestinationSupplier
                         .getInstance()
@@ -292,8 +307,7 @@ public class AutoActions {
             ),
             superstructure
                 .runGoal(destinationSupplier::getPreState)
-                .until(() -> !isInHexagonalReefDangerZone(
-                    RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d()))
+                .until(() -> !isInHexagonalReefDangerZone(RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d()))
                 .finallyDo(() -> System.out.println("done"))
         );
   }

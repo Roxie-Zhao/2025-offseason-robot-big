@@ -155,11 +155,11 @@ public class AutoBuilder {
               ).until(() -> AutoActions.isInIntakeDangerZone() || hasSeenCoral || AutoActions.hasCoralAtEE()),
               parallel(
 //                  forceZero().onlyIf(() -> idx == 1),
-                  intake()
-//                  sequence(
-//                      waitUntil(() -> superstructure.getState() == SuperstructureState.CORAL_GROUND_INTAKE && superstructure.poseAtGoal()),
-//                      superstructure.runZero()
-//                  )
+                  intake(),
+                  sequence(
+                      waitUntil(() -> superstructure.getState() == SuperstructureState.CORAL_GROUND_INTAKE && superstructure.poseAtGoal()),
+                      superstructure.runZero()
+                  ).onlyIf(() -> idx == 1)
               )
           );
         }, Set.of(swerve, superstructure))
@@ -180,7 +180,7 @@ public class AutoBuilder {
             ),
             intake()
         )
-    ).unless(() -> hasSeenCoral || AutoActions.hasCoralAtEE());
+    ).until(() -> hasSeenCoral || AutoActions.hasCoralAtEE());
 
     var score = sequence(
         print("Scoring"),
@@ -210,6 +210,7 @@ public class AutoBuilder {
 
     var tree = new DecisionTree();
     tree.addRoot(start);
+    tree.addDecision(start, end, () -> config.getAutoType() == AutoConfig.AutoType.DoNothing);
     tree.addDecision(score, end, () -> idx >= config.getCoralCount());
     tree.addAlwaysTrueDecision(start, scorePreload);
     tree.addAlwaysTrueDecision(scorePreload, getCoral);
