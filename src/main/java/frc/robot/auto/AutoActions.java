@@ -26,6 +26,7 @@ import frc.robot.subsystems.photonvision.PhotonVisionSubsystem;
 import frc.robot.subsystems.superstructure.DestinationSupplier;
 import frc.robot.subsystems.superstructure.Superstructure;
 import frc.robot.subsystems.superstructure.SuperstructureState;
+import frc.robot.utils.TimeDelayedBoolean;
 import lib.ironpulse.rbd.TransformRecorder;
 import lib.ironpulse.swerve.Swerve;
 import lib.ironpulse.swerve.SwerveCommands;
@@ -109,6 +110,7 @@ public class AutoActions {
   public static Superstructure superstructure;
   public static IndicatorSubsystem indicator;
   public static PhotonVisionSubsystem photon;
+
 
   public static void init(Swerve swerve, Superstructure superstructure, IndicatorSubsystem indicator, PhotonVisionSubsystem photon) {
     AutoActions.swerve = swerve;

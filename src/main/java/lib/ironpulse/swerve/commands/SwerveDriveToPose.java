@@ -17,6 +17,7 @@ import org.littletonrobotics.junction.Logger;
 
 import java.util.function.Supplier;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
 import static lib.ironpulse.math.MathTools.epsilonEquals;
@@ -108,10 +109,11 @@ public class SwerveDriveToPose extends Command {
     Pose3d TRT = TWT.relativeTo(TWR);
 
     double tolTransM = translationTolerance.in(Meters);
-    double tolRotRad = rotationTolerance.in(Radians);
-
-    return epsilonEquals(TRT.getTranslation().toTranslation2d(), new Translation2d(), tolTransM)
-        && epsilonEquals(TRT.getRotation().getAngle(), 0.0, tolRotRad);
+    double tolRotDeg = rotationTolerance.in(Degrees);
+    
+    boolean translationOnTarget = epsilonEquals(TRT.getTranslation().toTranslation2d(), new Translation2d(), tolTransM);
+    boolean rotationOnTarget = epsilonEquals(TRT.getRotation().toRotation2d().getDegrees(), 0.0, tolRotDeg);
+    return translationOnTarget && rotationOnTarget;
   }
 
   @NTParameter(tableName = "Params/" + kTag)

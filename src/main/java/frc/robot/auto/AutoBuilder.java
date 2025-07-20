@@ -7,6 +7,7 @@ import frc.robot.Robot;
 import frc.robot.RobotStateRecorder;
 import frc.robot.commands.aimSequences.AimGoalSupplier;
 import frc.robot.subsystems.superstructure.SuperstructureState;
+import frc.robot.utils.TimeDelayedBoolean;
 import lib.ironpulse.command.DecisionTree;
 import lib.ironpulse.utils.Logging;
 import lombok.Setter;
@@ -20,7 +21,10 @@ public class AutoBuilder {
   private static AutoBuilder instance;
   private int idx = 0;
   private boolean firstTimeToIntake = true;
+  private boolean hasZeroed = false;
   private boolean hasSeenCoral = false;
+  private TimeDelayedBoolean coralInsightDelay = new TimeDelayedBoolean();
+
   // ------- Configs -------
   @Setter
   private AutoConfig config = new AutoConfig();
@@ -148,9 +152,13 @@ public class AutoBuilder {
     var getCoral = print("Getting Coral").andThen(
         defer(() -> {
           boolean isLeft = config.getAutoType() == AutoConfig.AutoType.LeftRoutine;
+          coralInsightDelay.update(false, 0.0);
           return deadline(
               sequence(
-                  driveToIntakePoint(isLeft, firstTimeToIntake).until(AutoActions::isCoralInSight),
+                  driveToIntakePoint(isLeft, firstTimeToIntake).until(
+                    () -> coralInsightDelay.update(AutoActions.isCoralInSight(),
+                    0.15
+                  )),
                   chase().onlyIf(AutoActions::isCoralInSight)
               ).until(() -> AutoActions.isInIntakeDangerZone() || hasSeenCoral || AutoActions.hasCoralAtEE()),
               parallel(
@@ -158,8 +166,9 @@ public class AutoBuilder {
                   intake(),
                   sequence(
                       waitUntil(() -> superstructure.getState() == SuperstructureState.CORAL_GROUND_INTAKE && superstructure.poseAtGoal()),
-                      superstructure.runZero()
-                  ).onlyIf(() -> idx == 1)
+                      superstructure.runZero(),
+                      runOnce(() -> hasZeroed = true)
+                  ).onlyIf(() -> !hasZeroed)
               )
           );
         }, Set.of(swerve, superstructure))
