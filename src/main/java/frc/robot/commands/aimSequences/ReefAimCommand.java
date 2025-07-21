@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 import frc.robot.RobotConstants;
 import frc.robot.RobotStateRecorder;
+import frc.robot.auto.AutoParamsNT;
 import frc.robot.subsystems.indicator.IndicatorIO;
 import frc.robot.subsystems.indicator.IndicatorSubsystem;
 import frc.robot.subsystems.superstructure.DestinationSupplier;
@@ -28,6 +29,7 @@ import org.littletonrobotics.junction.Logger;
 
 import static edu.wpi.first.math.util.Units.degreesToRadians;
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.RobotConstants.LOOPER_DT;
 import static lib.ironpulse.math.MathTools.epsilonEquals;
 
 public class ReefAimCommand extends Command {
@@ -97,6 +99,14 @@ public class ReefAimCommand extends Command {
     // get current state
     poseWorldRobot = RobotStateRecorder.getPoseWorldRobotCurrent().toPose2d();
     velocityRobot = RobotStateRecorder.getVelocityWorldRobotCurrent();
+
+    // optional look-forward
+//    var poseStop = new Pose2d(
+//        poseWorldRobot.getTranslation().plus(
+//            velocityRobot.getTranslation().times(LOOPER_DT * ReefAimCommandParamsNT.stopLookForward.getValue())
+//        ),
+//        poseWorldRobot.getRotation()
+//    );
 
     // calculate destination
     tagPose = useSelectedTarget ? AimGoalSupplier.getSelectedTag() : AimGoalSupplier.getNearestTag(poseWorldRobot);
@@ -321,5 +331,7 @@ public class ReefAimCommand extends Command {
     static final double rotationOnTargetToleranceDegree = 1.5;
     static final double rotationOnTargetVelocityToleranceDegreesPerSecond = 15.0;
     static final double rotationAdjustmentMaxDegree = 0.0;
+
+//    static final double stopLookForward = 2.0;
   }
 }

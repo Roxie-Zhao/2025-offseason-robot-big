@@ -24,6 +24,7 @@ public class ClimberSubsystem extends SubsystemBase {
   // Auto climb detection variables
   private boolean currentSpikeDetected = false;
   private double spikeDetectionStartTime = -1;
+  private Double climbCountStartTime = null;
   
   @Setter
   private boolean autoClimbEnabled = true;
@@ -113,8 +114,16 @@ public class ClimberSubsystem extends SubsystemBase {
         double spikeDuration = currentTime - spikeDetectionStartTime;
         if (spikeDuration >= ClimberParamsNT.SpikeDebouceDuration.getValue()) {
           // Auto transition to climbing
-          wantedState = WantedState.CLIMB;
-          System.out.println("Climber: Auto climb triggered! Current spike sustained for " + spikeDuration + " seconds");
+          System.out.println("Climber: Auto climb triggered! Current spike sustained for " + spikeDuration + " seconds, ready to climb");
+          if (climbCountStartTime == null)
+            climbCountStartTime = currentTime;
+          else {
+            double climbDuration = currentTime - climbCountStartTime;
+            if (climbDuration > ClimberParamsNT.ClimbDelay.getValue() && wantedState != WantedState.CLIMB) {
+              wantedState = WantedState.CLIMB;
+              System.out.println("Climbed!");
+            }
+          }
         }
       }
     } else {
@@ -129,6 +138,7 @@ public class ClimberSubsystem extends SubsystemBase {
   private void resetAutoClimbDetection() {
     currentSpikeDetected = false;
     spikeDetectionStartTime = -1;
+    climbCountStartTime = null;
   }
 
   private SystemState handleStateTransition() {
@@ -193,6 +203,7 @@ public class ClimberSubsystem extends SubsystemBase {
     // Auto climb parameters
     static final double SpikeCurrentThreshold = 20.0;  // Amps threshold to detect current spike
     static final double SpikeDebouceDuration = 0.2;  // Seconds to debounce the spike before auto climb
+    static final double ClimbDelay = 0.5;
   }
 
 }

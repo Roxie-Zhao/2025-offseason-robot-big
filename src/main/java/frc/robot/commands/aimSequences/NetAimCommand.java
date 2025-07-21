@@ -81,7 +81,7 @@ public class NetAimCommand extends Command {
     xController.reset();
     rotationController.reset();
 
-    imuStable.update(false);
+    imuStable.update(false, 0.0);
   }
 
   @Override
@@ -178,8 +178,8 @@ public class NetAimCommand extends Command {
 
     static final double translationOnTargetMeters = 0.05;
     static final double translationStationaryMetersPerSecond = 0.15;
-    static final double imuStationaryDeg = 3;
-    static final double imuStationaryTime = 0.4;
+    static final double imuStationaryDeg = 2.8;
+    static final double imuStationaryTime = 0.5;
 
     static final double rotationKp = 4.0;
     static final double rotationKi = 0.01;

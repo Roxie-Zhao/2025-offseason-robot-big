@@ -32,12 +32,14 @@ public class AutoSelector {
   // Alert for invalid configurations
   private final Alert doNothingAlert;
   private final Alert invalidConfigAlert;
+  private final Alert finalL4FlatNotMatchAlert;
   private boolean hasError = false;
 
   private AutoSelector() {
     // Initialize alerts
     doNothingAlert = new Alert("Auto is set to Do Nothing", Alert.AlertType.kWarning);
     invalidConfigAlert = new Alert("Auto configuration is invalid", Alert.AlertType.kError);
+    finalL4FlatNotMatchAlert = new Alert("Auto Final L4 is on Flat, but does not match auto type.", Alert.AlertType.kWarning);
 
     // auto type chooser
     typeSelector = new SendableChooser<>();
@@ -50,13 +52,13 @@ public class AutoSelector {
     loc1Selector = makeLocationChooser("Location 1", AutoConfig.ScoringLocation.FarLeft);
     loc2Selector = makeLocationChooser("Location 2", AutoConfig.ScoringLocation.NearLeft);
     loc3Selector = makeLocationChooser("Location 3", AutoConfig.ScoringLocation.NearRight);
-    loc4Selector = makeLocationChooser("Location 4", AutoConfig.ScoringLocation.NearLeft);
+    loc4Selector = makeLocationChooser("Location 4", AutoConfig.ScoringLocation.FlatLeft);
 
     // level choosers with defaults
     level1Selector = makeLevelChooser("Level 1", AutoConfig.ScoringLevel.L4);
     level2Selector = makeLevelChooser("Level 2", AutoConfig.ScoringLevel.L4);
     level3Selector = makeLevelChooser("Level 3", AutoConfig.ScoringLevel.L4);
-    level4Selector = makeLevelChooser("Level 4", AutoConfig.ScoringLevel.L3);
+    level4Selector = makeLevelChooser("Level 4", AutoConfig.ScoringLevel.L4);
   }
 
   public static AutoSelector getInstance() {
@@ -101,6 +103,11 @@ public class AutoSelector {
     }
     invalidConfigAlert.set(isInvalid);
     hasError = isInvalid;
+
+    finalL4FlatNotMatchAlert.set(
+        (type == AutoConfig.AutoType.LeftRoutine && loc4Selector.getSelected() == AutoConfig.ScoringLocation.FlatRight)
+        || (type == AutoConfig.AutoType.RightRoutine && loc4Selector.getSelected() == AutoConfig.ScoringLocation.FlatLeft)
+    );
   }
 
   /** reads the dashboard and builds an AutoConfig in index order, skipping "None" slots */
