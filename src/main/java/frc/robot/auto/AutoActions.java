@@ -540,7 +540,7 @@ public class AutoActions {
     static final double LeftTriangleX = 2.1;
     static final double LeftTriangleY = 6.6;
     static final double BoundaryOffset = 0.0;
-    static final double StopLookforward = 7.0;
+    static final double StopLookforward = 12.0;
   }
 
 }

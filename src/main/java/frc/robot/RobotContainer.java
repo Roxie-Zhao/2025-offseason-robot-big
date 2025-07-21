@@ -69,6 +69,7 @@ import java.util.HashMap;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.RobotConstants.LimelightConstants.LIMELIGHT_LEFT;
 import static frc.robot.RobotConstants.LimelightConstants.LIMELIGHT_RIGHT;
+import static frc.robot.auto.AutoActions.kLeftBackoff;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -406,10 +407,13 @@ public class RobotContainer {
                         .until(() -> netEjectTimer.update(!superstructure.hasAlgae()))))
     );
 
-    operatorController.x().whileTrue(
-        superstructure.runGoal(() -> SuperstructureState.P1)
-            .until(() -> superstructure.hasAlgae()
-            ));
+    // operatorController.x().whileTrue(
+    //     superstructure.runGoal(() -> SuperstructureState.P1)
+    //         .until(() -> superstructure.hasAlgae()
+    //         ));
+    operatorController.x().onTrue(
+      AutoActions.resetOnPose(kLeftBackoff)
+    );
     operatorController.y().whileTrue(
         superstructure.runGoal(() -> SuperstructureState.P1)
             .until(() -> superstructure.hasAlgae()
