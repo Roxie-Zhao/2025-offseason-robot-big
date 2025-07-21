@@ -288,9 +288,12 @@ public class AutoActions {
   }
 
   public static Command shoot() {
-    return superstructure
+    return sequence(
+      waitSeconds(0.15).onlyIf(() -> DestinationSupplier.getInstance().getCoralScoreState() == SuperstructureState.L4),
+      superstructure
         .runGoal(() -> DestinationSupplier.getInstance().getShootState())
-        .until(() -> !superstructure.hasCoral());
+        .until(() -> !superstructure.hasCoral())
+    );
   }
 
   public static Command takeAlgae() {
@@ -554,7 +557,7 @@ public class AutoActions {
     static final double LeftTriangleX = 2.1;
     static final double LeftTriangleY = 6.6;
     static final double BoundaryOffset = 0.0;
-    static final double StopLookforward = 12.0;
+    static final double StopLookforward = 13.0;
   }
 
 }
