@@ -68,8 +68,6 @@ public class RobotStateRecorder extends TransformRecorder {
     var velWorldRobot = getVelocityWorldRobotCurrent();
 
     field.getRobotObject().setPose(poseWorldRobot.toPose2d());
-    for(int i = 0; i < posCorals.length; ++i)
-      field.getObject("Corals").setPoses(posCorals);
     SmartDashboard.putData("Field", field);
 
 
