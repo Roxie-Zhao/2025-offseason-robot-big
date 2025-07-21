@@ -41,6 +41,21 @@ public class RobotStateRecorder extends TransformRecorder {
     putTransform(kTransformWorldDriverStationBlue, kFrameWorld, kFrameDriverStationBlue); // static: TWorldDSB
     putTransform(kTransformWorldDriverStationRed, kFrameWorld, kFrameDriverStationRed); // static TWorldDSR
     putTransform(new Pose3d(), Seconds.of(0.0), kFrameWorld, kFrameRobot); // dynamic TWorldRobot at origin
+  
+    Logger.recordOutput("RobotStateRecorder/LeftLollipop", new Pose2d(
+      CoralRecorder.kLeftLollipop, new Rotation2d()
+    ));
+    Logger.recordOutput("RobotStateRecorder/RightLollipop", new Pose2d(
+      CoralRecorder.kRightLollipop, new Rotation2d()
+    ));
+    Logger.recordOutput("RobotStateRecorder/LeftLollipopFlipped", new Pose2d(
+      CoralRecorder.kLeftLollipopFlipped, new Rotation2d()
+    ));
+    
+    Logger.recordOutput("RobotStateRecorder/RightLollipopFlipped", new Pose2d(
+      CoralRecorder.kRightLollipopFlipped, new Rotation2d()
+    ));
+    
   }
 
   public static RobotStateRecorder getInstance() {
