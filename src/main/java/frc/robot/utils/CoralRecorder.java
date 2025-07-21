@@ -281,6 +281,6 @@ public class CoralRecorder {
     static final double confidenceTimeObservationGain = 7.0; // increase in confidence per second when observed
     static final double confidenceNewObservationProportion = 0.8; // starting confidence for a new observation
     static final double confidenceThreshold = 0.5;
-    static final double lollipopRejectionRadiusMeters = 0.25;
+    static final double lollipopRejectionRadiusMeters = 0.55;
   }
 }
