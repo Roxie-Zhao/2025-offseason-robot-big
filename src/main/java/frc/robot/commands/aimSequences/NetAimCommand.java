@@ -177,9 +177,9 @@ public class NetAimCommand extends Command {
     static final double translationAccelerationMax = 10.0;
 
     static final double translationOnTargetMeters = 0.05;
-    static final double translationStationaryMetersPerSecond = 0.15;
+    static final double translationStationaryMetersPerSecond = 0.10;
     static final double imuStationaryDeg = 2.8;
-    static final double imuStationaryTime = 0.5;
+    static final double imuStationaryTime = 0.6;
 
     static final double rotationKp = 4.0;
     static final double rotationKi = 0.01;

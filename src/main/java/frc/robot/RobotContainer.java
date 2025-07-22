@@ -265,7 +265,7 @@ public class RobotContainer {
                 climberSubsystem.setWantedState(ClimberSubsystem.WantedState.DEPLOY)),
             climberSubsystem::hasDeployed
         ));
-    driverController.povRight().onTrue(
+    driverController.x().onTrue(
         Commands.runOnce(climberSubsystem::forceClimb)
     );
 
@@ -346,14 +346,14 @@ public class RobotContainer {
 
 
     //TESTING : TODO: remove
-    driverController.x().whileTrue(
-        Commands.runOnce(() -> {
-              destinationSupplier.setCurrentGamePiece(DestinationSupplier.GamePiece.CORAL_SCORING);
-            })
-            .andThen(
-                new ReefAimCommand(swerve, indicatorSubsystem)
-            )
-    );
+    // driverController.x().whileTrue(
+    //     Commands.runOnce(() -> {
+    //           destinationSupplier.setCurrentGamePiece(DestinationSupplier.GamePiece.CORAL_SCORING);
+    //         })
+    //         .andThen(
+    //             new ReefAimCommand(swerve, indicatorSubsystem)
+    //         )
+    // );
 //    driverController.x().onTrue(superstructure.runZero());
 //    driverController.x().whileTrue(
 //        Commands.deadline(
